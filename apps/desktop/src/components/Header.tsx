@@ -9,6 +9,7 @@ import {
   FolderPlus,
   ArrowDownUp,
   Activity,
+  RefreshCw,
 } from 'lucide-react';
 import { useFiles } from '../context/FilesContext';
 import { useTransfers } from '../context/TransfersContext';
@@ -31,6 +32,7 @@ export const Header: React.FC<HeaderProps> = ({ onNewFolderClick }) => {
     sortOrder,
     setSortOrder,
     currentFolderId,
+    refreshFiles,
   } = useFiles();
 
   const { activeCount, setIsTransfersOpen, startUpload } = useTransfers();
@@ -169,6 +171,15 @@ export const Header: React.FC<HeaderProps> = ({ onNewFolderClick }) => {
             <List className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Refresh / Sync Button */}
+        <button
+          onClick={() => refreshFiles()}
+          className="p-2 rounded-xl text-tg-dark-muted hover:text-white bg-tg-dark-surface border border-tg-dark-border hover:bg-tg-dark-surfaceHover transition-all active:scale-95"
+          title="Refresh & Sync Files"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </button>
 
         {/* Transfers Manager Button */}
         <button

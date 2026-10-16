@@ -10,6 +10,11 @@ import {
   Check,
   LogOut,
   Trash2,
+  ExternalLink,
+  Globe,
+  Linkedin,
+  Github,
+  Send,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFiles } from '../context/FilesContext';
@@ -308,16 +313,111 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             )}
 
             {activeTab === 'about' && (
-              <div className="space-y-4 text-center py-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-tg-blue-600 to-tg-blue-400 flex items-center justify-center text-white mx-auto shadow-md">
-                  <Zap className="w-6 h-6" />
+              <div className="space-y-4 py-2">
+                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-tg-dark-bg/60 border border-tg-dark-border">
+                  <img src="/logo.png" alt="TGCloud" className="w-12 h-12 rounded-xl object-cover shadow-md" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-white">TGCloud</h3>
+                      <span className="text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                        v1.0.0 Production
+                      </span>
+                    </div>
+                    <p className="text-xs text-tg-dark-muted mt-0.5">
+                      Sovereign Telegram-Backed Cloud Storage
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base font-bold text-white">TGCloud</h3>
-                  <p className="text-xs text-tg-blue-400 mt-0.5">Version 1.0.0 (Tauri + Rust MTProto)</p>
-                  <p className="text-xs text-tg-dark-muted mt-2 max-w-sm mx-auto">
-                    Personal cloud storage application using your own Telegram account as the storage backend.
-                  </p>
+
+                {/* Developer Info Card */}
+                <div className="p-4 rounded-2xl bg-tg-dark-bg/60 border border-tg-dark-border space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-tg-blue-600 to-indigo-500 text-white font-bold flex items-center justify-center text-sm shadow-md">
+                      JJ
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                        JOJIN JOHN
+                        <span className="text-[10px] font-semibold bg-tg-blue-500/20 text-tg-blue-400 border border-tg-blue-500/30 px-1.5 py-0.2 rounded">
+                          Author
+                        </span>
+                      </h4>
+                      <p className="text-[11px] text-tg-dark-muted">
+                        Software Engineer • Security Researcher • Full Stack
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Social & Professional Links */}
+                  <div className="grid grid-cols-3 gap-2 pt-1">
+                    <button
+                      onClick={() => api.openFileInOs('https://www.linkedin.com/in/jojin-john/')}
+                      className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/30 text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-all cursor-pointer"
+                    >
+                      <Linkedin className="w-3.5 h-3.5" />
+                      <span>LinkedIn</span>
+                    </button>
+                    <button
+                      onClick={() => api.openFileInOs('https://github.com/jojin1709')}
+                      className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-tg-dark-surface hover:bg-tg-dark-surfaceHover border border-tg-dark-border text-[11px] font-semibold text-white transition-all cursor-pointer"
+                    >
+                      <Github className="w-3.5 h-3.5 text-tg-dark-muted" />
+                      <span>GitHub</span>
+                    </button>
+                    <button
+                      onClick={() => api.openFileInOs('https://t.me/Jojin1709')}
+                      className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-tg-blue-500/10 hover:bg-tg-blue-500/20 border border-tg-blue-500/30 text-[11px] font-semibold text-tg-blue-400 hover:text-tg-blue-300 transition-all cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Telegram</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Architecture Info */}
+                <div className="p-3.5 rounded-xl bg-tg-dark-bg/40 border border-tg-dark-border space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-tg-dark-muted">Architecture</span>
+                    <span className="text-tg-blue-400 font-medium">Direct MTProto (Zero Middleman)</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-tg-dark-muted">Desktop Runtime</span>
+                    <span className="text-tg-dark-muted font-mono">Tauri v2 + Rust 2021</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-tg-dark-muted">License</span>
+                    <span className="text-emerald-400 font-medium">MIT (Open Source)</span>
+                  </div>
+                </div>
+
+                {/* Tech Badges */}
+                <div className="flex flex-wrap gap-1.5">
+                  {['Telegram MTProto', 'Tauri v2', 'Rust', 'React 18', 'TypeScript', 'Tailwind CSS', 'SQLite'].map((tech) => (
+                    <span
+                      key={tech}
+                      className="px-2 py-1 rounded-lg bg-tg-dark-surface border border-tg-dark-border text-[11px] font-medium text-tg-dark-muted"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Quick External Links */}
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    onClick={() => api.openFileInOs('https://github.com/jojin1709/tgcloud')}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-tg-dark-surface border border-tg-dark-border hover:border-tg-blue-500/40 text-xs font-semibold text-white transition-all text-left cursor-pointer"
+                  >
+                    <span>GitHub Repository</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-tg-dark-muted" />
+                  </button>
+                  <button
+                    onClick={() => api.openFileInOs('https://jojin1709.github.io/tgcloud/')}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-tg-dark-surface border border-tg-dark-border hover:border-tg-blue-500/40 text-xs font-semibold text-white transition-all text-left cursor-pointer"
+                  >
+                    <span>Website & Docs</span>
+                    <Globe className="w-3.5 h-3.5 text-tg-blue-400" />
+                  </button>
                 </div>
               </div>
             )}
