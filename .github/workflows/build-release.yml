@@ -29,6 +29,36 @@ jobs:
           flutter-version: '3.24.x'
           channel: 'stable'
 
+      - name: Generate Android Embedding Scaffolding
+        run: |
+          cd apps/mobile
+          flutter create --org com.tgcloud --project-name tgcloud_mobile --platforms android .
+
+      - name: Configure Android Intent Filters (Share Sheet)
+        run: |
+          python3 -c "
+          manifest_path = 'apps/mobile/android/app/src/main/AndroidManifest.xml'
+          with open(manifest_path, 'r') as f:
+              content = f.read()
+          share_filter = '''
+                  <!-- Gallery Share Sheet Receiver -->
+                  <intent-filter>
+                      <action android:name=\"android.intent.action.SEND\" />
+                      <category android:name=\"android.intent.category.DEFAULT\" />
+                      <data android:mimeType=\"*/*\" />
+                  </intent-filter>
+                  <intent-filter>
+                      <action android:name=\"android.intent.action.SEND_MULTIPLE\" />
+                      <category android:name=\"android.intent.category.DEFAULT\" />
+                      <data android:mimeType=\"*/*\" />
+                  </intent-filter>
+          '''
+          if '<intent-filter>' in content:
+              content = content.replace('</activity>', share_filter + '        </activity>')
+          with open(manifest_path, 'w') as f:
+              f.write(content)
+          "
+
       - name: Install Mobile Dependencies
         run: |
           cd apps/mobile
@@ -51,7 +81,7 @@ jobs:
           path: apps/mobile/build/app/outputs/flutter-apk/app-release.apk
 
   build-windows:
-    name: Build Windows Desktop EXE
+    name: Build Windows Desktop (Inno Setup & Portable EXE)
     runs-on: windows-latest
     steps:
       - name: Checkout Repository
@@ -65,27 +95,51 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+
       - name: Build Desktop Web Frontend
+        shell: bash
         run: |
           cd apps/desktop
           npm install
           npm run build
 
       - name: Run Backend Tests
+        shell: bash
         run: |
           cd apps/desktop/src-tauri
           cargo test
 
       - name: Build Desktop Release Binary
+        shell: bash
         run: |
           cd apps/desktop/src-tauri
           cargo build --release
 
-      - name: Upload Windows EXE Artifact
+      - name: Compile Inno Setup Installer
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            $iscc = (Get-Command iscc.exe -ErrorAction SilentlyContinue).Source
+          }
+          Write-Host "Compiling with Inno Setup: $iscc"
+          New-Item -ItemType Directory -Path "./release-assets" -Force
+          & $iscc ./installer/tgcloud-setup.iss
+
+      - name: Copy Portable Executable
+        shell: pwsh
+        run: |
+          Copy-Item "./apps/desktop/src-tauri/target/release/tgcloud-desktop.exe" -Destination "./release-assets/TGCloud-Windows.exe"
+
+      - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: tgcloud-windows-exe
-          path: apps/desktop/src-tauri/target/release/tgcloud-desktop.exe
+          name: tgcloud-windows-assets
+          path: ./release-assets/*
 
   publish-release:
     name: Publish Release Assets
@@ -100,24 +154,39 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tgcloud-android-apk
-          path: ./release-assets
+          path: ./release-files
 
-      - name: Download Windows EXE
+      - name: Download Windows Assets
         uses: actions/download-artifact@v4
         with:
-          name: tgcloud-windows-exe
-          path: ./release-assets
+          name: tgcloud-windows-assets
+          path: ./release-files
 
-      - name: Rename Release Binaries
+      - name: Prepare Final Release Assets
         run: |
-          mv ./release-assets/app-release.apk ./release-assets/TGCloud-Android.apk || true
-          mv ./release-assets/tgcloud-desktop.exe ./release-assets/TGCloud-Windows.exe || true
+          ls -la ./release-files
+          mv ./release-files/app-release.apk ./release-files/TGCloud-Android.apk || true
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ./release-assets/TGCloud-Android.apk
-            ./release-assets/TGCloud-Windows.exe
+            ./release-files/TGCloud-Setup-v1.0.0.exe
+            ./release-files/TGCloud-Windows.exe
+            ./release-files/TGCloud-Android.apk
+          name: "TGCloud v1.0.0 — Production Release"
+          body: |
+            # TGCloud v1.0.0 Production Release
+            **Engineered and Developed by [JOJIN JOHN](https://www.linkedin.com/in/jojin-john/)**
+            
+            ### Included Downloads:
+            - **Windows Setup Installer (Inno Setup)**: `TGCloud-Setup-v1.0.0.exe` (Recommended for Windows)
+            - **Windows Standalone Portable Executable**: `TGCloud-Windows.exe`
+            - **Android Mobile Application**: `TGCloud-Android.apk`
+            
+            ### Quick Start:
+            1. Download the installer or APK for your platform.
+            2. Launch and log in with your Telegram phone number and verification code.
+            3. Enjoy sovereign, high-speed, direct MTProto cloud storage with zero middleman servers!
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
