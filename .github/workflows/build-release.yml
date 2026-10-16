@@ -127,11 +127,11 @@ jobs:
           cd apps/desktop/src-tauri
           cargo test
 
-      - name: Build Desktop Release Binary
+      - name: Build Desktop Release Binary (Embedded Frontend)
         shell: bash
         run: |
-          cd apps/desktop/src-tauri
-          cargo build --release
+          cd apps/desktop
+          npx tauri build --no-bundle
 
       - name: Compile Inno Setup Installer
         shell: pwsh
@@ -158,7 +158,7 @@ jobs:
   publish-release:
     name: Publish Release Assets
     needs: [build-android, build-windows]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -184,6 +184,7 @@ jobs:
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: "v1.0.0"
           files: |
             ./release-files/TGCloud-Setup-v1.0.0.exe
             ./release-files/TGCloud-Windows.exe
