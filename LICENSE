@@ -1,0 +1,53 @@
+PROPRIETARY SOFTWARE LICENSE & COPYRIGHT NOTICE
+
+Copyright (c) 2026 JOJIN JOHN. All Rights Reserved.
+
+==============================================================================
+TERMS AND CONDITIONS OF USE, COPYING, AND DISTRIBUTION
+==============================================================================
+
+1. OWNERSHIP & INTELLECTUAL PROPERTY
+   This software ("TGCloud"), including but not limited to its source code,
+   architecture, database schemas, MTProto integration algorithms, documentation,
+   branding, user interface designs, and visual assets, is the sole and exclusive
+   intellectual property of JOJIN JOHN ("the Author").
+   All rights, title, and interest not expressly granted herein are strictly reserved.
+
+2. STRICT PROHIBITION ON COPYING AND PLAGIARISM
+   - You may NOT copy, reproduce, clone, duplicate, republish, or distribute
+     this software or any portion of its source code without prior explicit written
+     consent from JOJIN JOHN.
+   - You may NOT claim authorship, ownership, or co-authorship of this software,
+     its code, or its underlying design.
+   - You may NOT rebrand, resell, sublicense, rent, lease, or commercially exploit
+     this software or any derivative works thereof.
+   - You may NOT extract, decompile, reverse-engineer, or adapt this software's
+     proprietary MTProto transfer pipeline or local database persistence layers
+     into separate or competing products.
+
+3. PERMITTED USAGE
+   Subject to compliance with these terms, individual users are granted a limited,
+   personal, non-exclusive, non-transferable, revocable license solely to:
+   - Download, install, and execute the official pre-compiled releases
+     for personal, private, non-commercial Telegram cloud-storage management.
+   - View the source code strictly for personal educational review and private
+     security auditing.
+
+4. ENFORCEMENT & REMEDIES
+   Any unauthorized copying, mirroring, distribution, or plagiarism of this work
+   constitutes copyright infringement and a violation of international intellectual
+   property laws, subject to immediate takedown notices (including DMCA) and
+   legal remedies under applicable jurisdictions.
+
+5. DISCLAIMER OF WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHOR (JOJIN JOHN) BE LIABLE FOR ANY DAMAGES, LOSS OF DATA, OR LIABILITIES
+   ARISING OUT OF OR IN CONNECTION WITH THE USE OR INABILITY TO USE THIS SOFTWARE.
+
+==============================================================================
+Developer & Sole Rights Holder: JOJIN JOHN
+LinkedIn: https://www.linkedin.com/in/jojin-john/
+GitHub: https://github.com/jojin1709/tgcloud
+==============================================================================

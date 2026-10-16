@@ -1,5 +1,10 @@
 # TGCloud Developer Guide
 
+This guide is intended for developers contributing to or compiling TGCloud from source.
+End users should simply download the pre-compiled releases from [GitHub Releases](https://github.com/jojin1709/tgcloud/releases/latest).
+
+---
+
 ## 1. Prerequisites
 
 ### Windows Desktop (Tauri + Rust + React)
@@ -11,12 +16,30 @@
 ### Mobile (Android Flutter)
 - **Flutter SDK**: 3.x+
 - **Android SDK**: API 34+
+- **Java**: JDK 17+
 
 ---
 
-## 2. Desktop Development Workflow
+## 2. Environment Configuration
 
-### Install Dependencies
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Configure your Telegram API credentials obtained from [my.telegram.org](https://my.telegram.org):
+   ```env
+   TELEGRAM_API_ID=your_api_id_here
+   TELEGRAM_API_HASH=your_api_hash_here
+   ```
+
+*(Note: `.env` is protected by `.gitignore` across all subdirectories and will never be committed to Git).*
+
+---
+
+## 3. Desktop Development Workflow
+
+### Install Frontend Dependencies
 ```bash
 cd apps/desktop
 npm install
@@ -25,31 +48,32 @@ npm install
 ### Run Frontend in Development Server
 ```bash
 npm run dev
-# Starts Vite at http://localhost:1420
+# Starts Vite dev server at http://localhost:1420
 ```
 
-### Build Frontend
+### Build Production Web Assets
 ```bash
 npm run build
 ```
 
-### Run Automated Rust Backend Tests
+### Run Automated Rust Backend Unit Tests
 ```bash
 cd apps/desktop/src-tauri
 cargo test
 ```
 
-### Compile Tauri Desktop Application
+### Compile Release Windows Executable
 ```bash
-cd apps/desktop
-npm run tauri build
+cd apps/desktop/src-tauri
+cargo build --release
+# Generates apps/desktop/src-tauri/target/release/tgcloud-desktop.exe
 ```
 
 ---
 
-## 3. Mobile Development Workflow
+## 4. Mobile Development Workflow
 
-### Fetch Flutter Packages
+### Fetch Flutter Dependencies
 ```bash
 cd apps/mobile
 flutter pub get
@@ -60,7 +84,8 @@ flutter pub get
 flutter test test/unit_test.dart
 ```
 
-### Build Android APK
+### Build Android Release APK
 ```bash
 flutter build apk --release
+# Generates apps/mobile/build/app/outputs/flutter-apk/app-release.apk
 ```

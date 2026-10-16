@@ -9,9 +9,10 @@
 
 [![Developer](https://img.shields.io/badge/Developer-JOJIN%20JOHN-2ca5e0?style=for-the-badge&logo=telegram&logoColor=white)](#about-the-developer)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Android-17212b?style=for-the-badge&logo=windows&logoColor=2ca5e0)](#architecture)
-[![Desktop](https://img.shields.io/badge/Desktop-Tauri%20v2%20%2B%20Rust-1e2c3a?style=for-the-badge&logo=rust&logoColor=white)](#2-windows-desktop-tauri--rust--react)
-[![Mobile](https://img.shields.io/badge/Mobile-Flutter%203.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)](#3-android-mobile-flutter--dart)
-[![License](https://img.shields.io/badge/License-MIT-00c853?style=for-the-badge)](#license)
+[![Desktop](https://img.shields.io/badge/Desktop-Windows%20(.exe)-1e2c3a?style=for-the-badge&logo=windows&logoColor=white)](#download--get-started)
+[![Mobile](https://img.shields.io/badge/Mobile-Android%20(.apk)-02569B?style=for-the-badge&logo=android&logoColor=white)](#download--get-started)
+[![License](https://img.shields.io/badge/License-Proprietary%20%7C%20All%20Rights%20Reserved-d32f2f?style=for-the-badge)](#license)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-JOJIN%20JOHN-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jojin-john/)
 
 ### TGCloud is an autonomous, direct personal cloud-storage and file-management system powered by Telegram MTProto.
 
@@ -19,18 +20,20 @@ It turns your personal Telegram account into a sovereign, high-speed, unlimited 
 
 **This repository is TGCloud: the full open-source client suite for Windows and Android, engineered and developed by JOJIN JOHN.**
 
-<p><strong>Launch TGCloud Desktop</strong></p>
+<br/>
 
-```bash
-cd apps/desktop && npm run dev
-```
+<p>
+  <a href="https://github.com/jojin1709/tgcloud/releases/latest"><img src="https://img.shields.io/badge/⬇️_Download_Windows-TGCloud.exe-0078D6?style=for-the-badge&logo=windows&logoColor=white" height="42" alt="Download TGCloud for Windows"></a>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://github.com/jojin1709/tgcloud/releases/latest"><img src="https://img.shields.io/badge/⬇️_Download_Android-TGCloud.apk-3DDC84?style=for-the-badge&logo=android&logoColor=white" height="42" alt="Download TGCloud for Android"></a>
+</p>
 
-<sub>Run the native Windows desktop client with Rust MTProto engine + React 18 UI, or build the Android Flutter APK.</sub>
+<sub>Pre-compiled, fully functional standalone releases. Simply download, launch, and connect with Telegram. No terminal or compilers required.</sub>
 
 ---
 
 <p>
-  <a href="#quick-start"><b>Quick Start</b></a>&nbsp;&nbsp;•&nbsp;&nbsp;
+  <a href="#download--get-started"><b>Download &amp; Get Started</b></a>&nbsp;&nbsp;•&nbsp;&nbsp;
   <a href="#key-capabilities"><b>Key Capabilities</b></a>&nbsp;&nbsp;•&nbsp;&nbsp;
   <a href="#architecture"><b>Architecture</b></a>&nbsp;&nbsp;•&nbsp;&nbsp;
   <a href="#security--privacy"><b>Security &amp; Privacy</b></a>&nbsp;&nbsp;•&nbsp;&nbsp;
@@ -44,7 +47,7 @@ cd apps/desktop && npm run dev
 </div>
 
 > [!TIP]
-> **New to Telegram API development?** Start with [docs/telegram-setup.md](docs/telegram-setup.md) to register your official `api_id` and `api_hash` on [my.telegram.org](https://my.telegram.org) before your first run.
+> **Zero Setup Hassle:** Just download the executable or APK from [Releases](https://github.com/jojin1709/tgcloud/releases/latest), open it, enter your phone number, and verify with your Telegram login code. Your storage is ready in seconds.
 
 ---
 
@@ -54,17 +57,15 @@ cd apps/desktop && npm run dev
   - [Why TGCloud Exists](#why-tgcloud-exists)
   - [Why Telegram as Storage?](#why-telegram-as-storage)
   - [Zero-Backend Sovereign Architecture](#zero-backend-sovereign-architecture)
+- [Download & Get Started](#download--get-started)
+  - [1. Download Pre-Built Binaries](#1-download-pre-built-binaries)
+  - [2. Quick Login (Under 30 Seconds)](#2-quick-login-under-30-seconds)
 - [TGCloud in Action](#tgcloud-in-action)
 - [Key Capabilities](#key-capabilities)
 - [Architecture](#architecture)
   - [System Flow](#system-flow)
   - [Cross-Platform Technology Matrix](#cross-platform-technology-matrix)
   - [Transfer Pipeline & Telemetry](#transfer-pipeline--telemetry)
-- [Quick Start](#quick-start)
-  - [Prerequisites](#prerequisites)
-  - [1. Environment Configuration](#1-environment-configuration)
-  - [2. Windows Desktop (Tauri + Rust + React)](#2-windows-desktop-tauri--rust--react)
-  - [3. Android Mobile (Flutter + Dart)](#3-android-mobile-flutter--dart)
 - [Security & Privacy](#security--privacy)
 - [Documentation](#documentation)
 - [Monorepo Structure](#monorepo-structure)
@@ -115,6 +116,32 @@ Unlike web wrappers or third-party bots that route your files through external c
 There are no TGCloud servers. Network traffic travels directly between your device and Telegram's official MTProto endpoints (`149.154.167.50:443`).
 
 </details>
+
+---
+
+## Download & Get Started
+
+TGCloud is distributed as ready-to-run standalone packages for Windows and Android. **No coding, no terminal commands, and no complex configuration required.**
+
+### 1. Download Pre-Built Binaries
+
+| Platform | Format | Direct Download | Requirements |
+| :--- | :--- | :--- | :--- |
+| **Windows Desktop** | Standalone `.exe` | [**Download TGCloud-Windows.exe**](https://github.com/jojin1709/tgcloud/releases/latest) | Windows 10 or 11 (64-bit) |
+| **Android Mobile** | Release `.apk` | [**Download TGCloud-Android.apk**](https://github.com/jojin1709/tgcloud/releases/latest) | Android 8.0 (Oreo) or later |
+
+---
+
+### 2. Quick Login (Under 30 Seconds)
+
+1. **Launch the App**: Open `TGCloud-Windows.exe` on your PC, or install and launch `TGCloud-Android.apk` on your Android phone.
+2. **Enter Phone Number**: Input your standard Telegram phone number with country code (e.g. `+1 555 123 4567`).
+3. **Enter Verification Code**: Check your official Telegram application on your phone/desktop for the 5-digit login code and enter it into TGCloud.
+4. **2FA Password (if enabled)**: If you protect your account with Two-Step Verification, enter your password. (It is processed ephemerally in-memory and never saved to disk).
+5. **Start Storing Files**: TGCloud automatically connects to your dedicated private vault. You are ready to drag, drop, upload, organize, and stream your files immediately!
+
+> [!NOTE]
+> **Source Builds**: Developers wishing to compile from source or contribute can follow the developer instructions in [docs/development.md](docs/development.md).
 
 ---
 
@@ -231,67 +258,6 @@ Download: Telegram Vault  ──> 512 KB Chunks ──> Stream Assembler ──>
 
 ---
 
-## Quick Start
-
-### Prerequisites
-
-- **Node.js**: v18+ (verified on Node v24.11)
-- **Rust**: v1.75+ with `x86_64-pc-windows-msvc` toolchain
-- **Visual Studio C++ Build Tools** (MSVC compiler & Windows SDK)
-- **Telegram Account**: A valid Telegram account to generate API keys
-- **Flutter SDK**: (Optional, for Android mobile development)
-
-### 1. Environment Configuration
-
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Add your official Telegram API credentials from [my.telegram.org](https://my.telegram.org):
-   ```env
-   TELEGRAM_API_ID=your_api_id_here
-   TELEGRAM_API_HASH=your_api_hash_here
-   ```
-
-> [!IMPORTANT]
-> Your `.env` file is strictly protected by `.gitignore` across all root and subdirectory levels. It will never be committed or pushed to GitHub.
-
-### 2. Windows Desktop (Tauri + Rust + React)
-
-```bash
-# 1. Install frontend dependencies
-cd apps/desktop
-npm install
-
-# 2. Start the development server
-npm run dev
-
-# 3. Run automated Rust backend unit tests
-cd src-tauri
-cargo test
-
-# 4. Compile the production bundle
-cd ..
-npm run build
-```
-
-### 3. Android Mobile (Flutter + Dart)
-
-```bash
-# 1. Fetch mobile dependencies
-cd apps/mobile
-flutter pub get
-
-# 2. Run mobile unit tests
-flutter test test/unit_test.dart
-
-# 3. Build release APK
-flutter build apk --release
-```
-
----
-
 ## Security & Privacy
 
 TGCloud is engineered with privacy as a fundamental constraint:
@@ -315,8 +281,8 @@ Comprehensive operational and architecture guides:
 | Guide | Use it for |
 | :--- | :--- |
 | [Architecture Specification](docs/architecture.md) | In-depth MTProto design, chunking algorithms, and SQLite database schema. |
-| [Telegram Setup Guide](docs/telegram-setup.md) | Step-by-step guide to generating `api_id` and `api_hash` on my.telegram.org. |
-| [Developer Guide](docs/development.md) | Building, testing, debugging, and packaging Windows and Android clients. |
+| [Developer Guide](docs/development.md) | Compiling from source, running tests, and local development. |
+| [Telegram Setup Guide](docs/telegram-setup.md) | Generating custom `api_id` and `api_hash` on my.telegram.org (for developers). |
 | [Security Policy](SECURITY.md) | Vulnerability disclosure, threat model, and cryptographic boundaries. |
 | [Privacy Policy](PRIVACY.md) | Zero-data-collection, client-side execution, and network routing. |
 
@@ -346,7 +312,7 @@ TGCloud/
 │   └── types/                   # Shared TypeScript definitions
 │
 ├── docs/                        # Complete technical documentation
-├── .env.example                 # Configuration template
+├── .env.example                 # Configuration template (source developers)
 ├── SECURITY.md                  # Security specification
 ├── PRIVACY.md                   # Privacy & zero-telemetry policy
 └── README.md
@@ -360,7 +326,11 @@ TGCloud/
 
 - **Lead Architect & Developer:** **JOJIN JOHN**
 - **Domain:** Systems Engineering, MTProto Protocol Architecture, Full-Stack & Cyber Security Research
+- **LinkedIn Profile:** [linkedin.com/in/jojin-john](https://www.linkedin.com/in/jojin-john/)
+- **GitHub:** [github.com/jojin1709](https://github.com/jojin1709)
 - **Repository:** [github.com/jojin1709/tgcloud](https://github.com/jojin1709/tgcloud)
+
+Connect with JOJIN JOHN on [LinkedIn](https://www.linkedin.com/in/jojin-john/) for professional inquiries, collaborations, or feedback.
 
 ---
 
@@ -385,11 +355,18 @@ Yes. TGCloud registers an Android `SEND` and `SEND_MULTIPLE` intent filter. Sele
 
 ## License
 
-TGCloud is licensed under the [MIT License](LICENSE).
+Copyright © 2026 **JOJIN JOHN**. All Rights Reserved.
+
+This project and all associated source code, design assets, database schemas, MTProto algorithms, and documentation are protected by international copyright law under a strict **Proprietary License**.
+
+- **Strictly Prohibited**: You may **not** copy, reproduce, clone, fork, republish, redistribute, rebrand, resell, or plagiarize this codebase or any part of it without explicit prior written authorization from **JOJIN JOHN**.
+- **Personal Use Only**: Users are granted permission solely to download, install, and execute the official pre-compiled releases for personal, non-commercial cloud storage management.
+
+For full legal terms and conditions, refer to the [LICENSE](LICENSE) file.
 
 <div align="center">
 
-**Built with pride by [JOJIN JOHN](https://github.com/jojin1709)**  
-<sub>Empowering personal data sovereignty with Telegram MTProto.</sub>
+**Engineered and Developed with pride by [JOJIN JOHN](https://www.linkedin.com/in/jojin-john/)**  
+<sub>Empowering personal data sovereignty with Telegram MTProto. • [Connect on LinkedIn](https://www.linkedin.com/in/jojin-john/)</sub>
 
 </div>
