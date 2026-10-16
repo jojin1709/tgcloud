@@ -34,12 +34,26 @@ jobs:
           cd apps/mobile
           flutter create --org com.tgcloud --project-name tgcloud_mobile --platforms android .
 
-      - name: Configure Android Intent Filters (Share Sheet)
+      - name: Configure Android Gradle (compileSdk 35) & Intent Filters
         run: |
           python3 -c "
+          import re
+          # 1. Update compileSdk to 35
+          gradle_path = 'apps/mobile/android/app/build.gradle'
+          with open(gradle_path, 'r') as f:
+              gradle_text = f.read()
+          gradle_text = re.sub(r'compileSdk\s*=?\s*flutter\.compileSdkVersion', 'compileSdk = 35', gradle_text)
+          gradle_text = re.sub(r'compileSdk\s*=?\s*\d+', 'compileSdk = 35', gradle_text)
+          gradle_text = re.sub(r'compileSdkVersion\s*flutter\.compileSdkVersion', 'compileSdkVersion 35', gradle_text)
+          gradle_text = re.sub(r'compileSdkVersion\s*\d+', 'compileSdkVersion 35', gradle_text)
+          with open(gradle_path, 'w') as f:
+              f.write(gradle_text)
+
+          # 2. Update AndroidManifest.xml: remove deprecated package attribute and inject Share Sheet intent-filters
           manifest_path = 'apps/mobile/android/app/src/main/AndroidManifest.xml'
           with open(manifest_path, 'r') as f:
-              content = f.read()
+              manifest_text = f.read()
+          manifest_text = re.sub(r'\s*package=\"[^\"]*\"', '', manifest_text)
           share_filter = '''
                   <!-- Gallery Share Sheet Receiver -->
                   <intent-filter>
@@ -53,10 +67,10 @@ jobs:
                       <data android:mimeType=\"*/*\" />
                   </intent-filter>
           '''
-          if '<intent-filter>' in content:
-              content = content.replace('</activity>', share_filter + '        </activity>')
+          if '<intent-filter>' in manifest_text and 'android.intent.action.SEND' not in manifest_text:
+              manifest_text = manifest_text.replace('</activity>', share_filter + '        </activity>')
           with open(manifest_path, 'w') as f:
-              f.write(content)
+              f.write(manifest_text)
           "
 
       - name: Install Mobile Dependencies
@@ -72,7 +86,7 @@ jobs:
       - name: Build Android Release APK
         run: |
           cd apps/mobile
-          flutter build apk --release
+          flutter build apk --release --no-tree-shake-icons
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TGCloud — Sovereign Telegram MTProto Cloud Storage</title>
+  <meta name="description" content="TGCloud turns your personal Telegram account into unlimited, high-speed sovereign cloud storage for Windows and Android.">
+  <link rel="icon" type="image/png" href="./assets/logo.png">
+  <link rel="shortcut icon" href="./assets/favicon.ico">
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+  <!-- Ambient Glow Effects -->
+  <div class="ambient-glow ambient-glow-1"></div>
+  <div class="ambient-glow ambient-glow-2"></div>
+
+  <!-- Background Particle Animation Canvas -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Sticky Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-content">
+      <a href="#" class="brand">
+        <img src="./assets/logo.png" alt="TGCloud Logo" class="brand-icon">
+        <span class="brand-text">TGCloud</span>
+        <span class="brand-badge">MTPROTO</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#telemetry">Live Telemetry</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#developer">Developer</a></li>
+        <li><a href="#downloads" class="nav-cta">Download App</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-pill">
+        <span class="hero-pill-dot"></span>
+        Direct MTProto TLS v2.0 • Zero Middleman Proxy
+      </div>
+
+      <h1 class="hero-title">
+        Your Personal Telegram.<br>
+        <span class="gradient">Unlimited Sovereign Cloud Storage.</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        TGCloud delivers a full commercial cloud-drive interface powered directly by your personal Telegram account.
+        Enjoy virtual folders, sub-millisecond search, media streaming, and resumable 512 KB chunk transfers without opening Telegram.
+      </p>
+
+      <!-- Main Download Action Buttons -->
+      <div class="hero-actions" id="downloads">
+        <a href="https://github.com/jojin1709/tgcloud/releases/latest" class="btn-download btn-windows">
+          <span class="btn-icon">🪟</span>
+          <div style="text-align: left;">
+            <div>Download for Windows</div>
+            <span class="btn-sub">Standalone .exe &amp; Inno Setup • 64-bit</span>
+          </div>
+        </a>
+
+        <a href="https://github.com/jojin1709/tgcloud/releases/latest" class="btn-download btn-android">
+          <span class="btn-icon">🤖</span>
+          <div style="text-align: left;">
+            <div>Download for Android</div>
+            <span class="btn-sub">Release .apk • Share Sheet Enabled</span>
+          </div>
+        </a>
+      </div>
+
+      <p class="hero-subtext">
+        🔒 100% Client-Side Sovereign Execution • Zero Tracking • No 2FA Passwords Saved to Disk
+      </p>
+
+      <!-- App Mockup Banner Showcase -->
+      <div class="showcase-wrapper">
+        <div class="showcase-frame">
+          <img src="./assets/banner.png" alt="TGCloud Desktop &amp; Mobile Interface Mockup" class="showcase-img">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Features Section -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Key Capabilities</span>
+        <h2 class="section-title">Engineered for Sovereign Performance</h2>
+        <p class="section-desc">
+          Everything you expect from modern cloud drives like Google Drive or Dropbox, with zero monthly subscriptions.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3 class="card-title">Direct MTProto TLS</h3>
+          <p class="card-desc">
+            Direct socket streams to official Telegram CDN datacenters (<code>149.154.167.50:443</code>). No third-party relays, no intermediary cloud servers, and no rate limit taxes.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📁</div>
+          <h3 class="card-title">Dedicated Storage Vault</h3>
+          <p class="card-desc">
+            TGCloud automatically discovers or provisions a private channel (<code>TGCloud Storage Vault</code>). Your files stay organized and completely separate from personal chats.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <h3 class="card-title">Resumable 512 KB Transfers</h3>
+          <p class="card-desc">
+            Uploads and downloads stream in optimized 512 KB MTProto chunks with SHA-256 checksums. Easily pause, resume, and retry interrupted transfers without re-transmitting data.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3 class="card-title">Sub-Millisecond Search</h3>
+          <p class="card-desc">
+            Embedded SQLite in WAL mode gives you instant, offline-capable indexing. Search tens of thousands of files across folders, tags, and extensions instantly.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🎬</div>
+          <h3 class="card-title">In-App Media Streaming</h3>
+          <p class="card-desc">
+            Stream videos, play audio files, view high-res photos, and inspect PDFs directly inside TGCloud without downloading them to local storage first.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📲</div>
+          <h3 class="card-title">Android Share Sheet</h3>
+          <p class="card-desc">
+            Seamless mobile integration. Select any image, video, or document in your Android Gallery or Files app, tap <strong>Share → TGCloud</strong>, and it uploads in the background.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Transfer Simulator Widget -->
+  <section class="section" id="telemetry" style="background: rgba(0,0,0,0.25);">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Real-Time Telemetry</span>
+        <h2 class="section-title">Interactive Transfer Engine</h2>
+        <p class="section-desc">
+          Test TGCloud's chunked MTProto streaming pipeline and delta-time speed calculations live in your browser.
+        </p>
+      </div>
+
+      <div class="sim-container">
+        <div class="sim-header">
+          <div>
+            <h4 style="font-size: 18px; font-weight: 700; color: #fff;">MTProto Chunk Stream Telemetry</h4>
+            <span style="font-size: 13px; color: var(--text-secondary);">Direct Stream to Telegram DC 2 (Port 443)</span>
+          </div>
+          <div class="sim-controls">
+            <button id="sim-start-upload" class="sim-btn">Simulate Upload</button>
+            <button id="sim-start-download" class="sim-btn">Simulate Download</button>
+          </div>
+        </div>
+
+        <div class="sim-progress-box">
+          <div class="sim-progress-header">
+            <span id="sim-filename">↑ Uploading: production_backup_2026.tar.gz</span>
+            <span id="sim-percent">0%</span>
+          </div>
+
+          <div class="sim-bar-bg">
+            <div id="sim-bar-fill" class="sim-bar-fill"></div>
+          </div>
+        </div>
+
+        <div class="sim-stats">
+          <div class="sim-stat-box">
+            <div class="sim-stat-label">Transfer Speed</div>
+            <div id="sim-speed" class="sim-stat-value">18.4 MB/s</div>
+          </div>
+          <div class="sim-stat-box">
+            <div class="sim-stat-label">Transferred</div>
+            <div id="sim-transferred" class="sim-stat-value">0 / 420.5 MB</div>
+          </div>
+          <div class="sim-stat-box">
+            <div class="sim-stat-label">Est. Time Remaining</div>
+            <div id="sim-eta" class="sim-stat-value">22s</div>
+          </div>
+          <div class="sim-stat-box">
+            <div class="sim-stat-label">Processed Chunks</div>
+            <div id="sim-chunks" class="sim-stat-value">0 / 841 (512 KB)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Pipeline -->
+  <section class="section" id="architecture">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Under the Hood</span>
+        <h2 class="section-title">Zero-Server Client Architecture</h2>
+        <p class="section-desc">
+          How data flows securely from local devices directly into Telegram's encrypted datacenters.
+        </p>
+      </div>
+
+      <div class="arch-pipeline">
+        <div class="arch-node">
+          <h4>1. Local File Stream</h4>
+          <p>Disk file read in 512 KB chunks with in-memory SHA-256 checksum.</p>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">
+          <h4>2. MTProto TLS Tunnel</h4>
+          <p>Encrypted MTProto transport protocol straight to Telegram servers.</p>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">
+          <h4>3. Storage Vault</h4>
+          <p>Document stored in private vault channel; message ID indexed locally.</p>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">
+          <h4>4. SQLite WAL Index</h4>
+          <p>Instant file tree lookup, virtual tags, and transfer history.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Frequently Asked Questions</span>
+        <h2 class="section-title">Everything You Need to Know</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item active">
+          <div class="faq-question">
+            <span>Do I need to create or configure API keys to use TGCloud?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            No! Official Telegram client credentials are baked directly into the standalone application. You simply launch TGCloud, enter your standard phone number, confirm the 5-digit verification code sent to your Telegram app, and your cloud drive is ready.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Does TGCloud clutter my personal "Saved Messages" chat?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            No. TGCloud automatically provisions a dedicated, private channel titled <code>TGCloud Storage Vault</code> accessible only by your account. All folders, files, and backups are stored there, keeping your personal chats clean.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Are my Telegram 2FA cloud passwords stored on disk?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Never. Telegram Two-Step Verification passwords are used ephemerally in-memory strictly during the SRP authentication challenge and are immediately zeroized. They are never written to disk or sent to any third party.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What is the maximum file size supported?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Telegram supports up to 2 GB per individual file for standard accounts, and up to 4 GB per file for Telegram Premium users. There is no limit on the total number of files or total capacity.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Can I share files to TGCloud directly from my Android Gallery?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Yes! TGCloud registers native Android <code>SEND</code> and <code>SEND_MULTIPLE</code> intent filters. Simply tap Share on any photo, video, or document in your Gallery and select TGCloud to queue background uploads.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Developer Spotlight Section -->
+  <section class="section" id="developer" style="padding-top: 20px;">
+    <div class="container">
+      <div class="dev-card">
+        <div class="dev-info">
+          <h3>Architected &amp; Built by JOJIN JOHN</h3>
+          <span class="dev-role">Lead Software Architect &amp; Security Researcher</span>
+          <p class="dev-desc">
+            TGCloud was engineered from the ground up to give users absolute data sovereignty over their personal files, using modern systems programming in Rust, Tauri v2, Flutter, and official Telegram MTProto protocols.
+          </p>
+          <div class="dev-actions">
+            <a href="https://www.linkedin.com/in/jojin-john/" target="_blank" rel="noopener noreferrer" class="btn-linkedin">
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+              Connect on LinkedIn
+            </a>
+            <a href="https://github.com/jojin1709/tgcloud" target="_blank" rel="noopener noreferrer" class="btn-github">
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              GitHub Repository
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <ul class="footer-links">
+        <li><a href="#downloads">Downloads</a></li>
+        <li><a href="https://github.com/jojin1709/tgcloud/blob/main/LICENSE">Proprietary License</a></li>
+        <li><a href="https://github.com/jojin1709/tgcloud/blob/main/SECURITY.md">Security Policy</a></li>
+        <li><a href="https://github.com/jojin1709/tgcloud/blob/main/PRIVACY.md">Privacy Policy</a></li>
+        <li><a href="https://www.linkedin.com/in/jojin-john/">Contact Developer</a></li>
+      </ul>
+      <p>
+        Copyright &copy; 2026 <strong>JOJIN JOHN</strong>. All Rights Reserved.<br>
+        Proprietary Software. Unauthorized copying, duplication, or redistribution is strictly prohibited.
+      </p>
+    </div>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>

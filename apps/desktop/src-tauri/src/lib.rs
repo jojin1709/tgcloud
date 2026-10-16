@@ -27,13 +27,14 @@ pub fn run() {
 
     let db = Database::new(&db_path).expect("Failed to initialize SQLite database");
 
-    // Load Telegram API ID and Hash from environment or defaults
+    // Load Telegram API ID and Hash from environment or use official built-in client credentials
     let api_id: i32 = std::env::var("TELEGRAM_API_ID")
         .ok()
         .and_then(|v| v.parse().ok())
-        .unwrap_or(0);
+        .unwrap_or(34949606);
 
-    let api_hash = std::env::var("TELEGRAM_API_HASH").unwrap_or_default();
+    let api_hash = std::env::var("TELEGRAM_API_HASH")
+        .unwrap_or_else(|_| "4a68d08a7744c1af7ae394a08718de3d".to_string());
 
     let telegram_service = Arc::new(Mutex::new(TelegramService::new(
         api_id,
