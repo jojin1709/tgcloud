@@ -1,10 +1,8 @@
-import React from 'react';
 import {
   Folder,
   Clock,
   Star,
   Trash2,
-  Cloud,
   Settings as SettingsIcon,
   LogOut,
   ShieldCheck,
@@ -39,9 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSettings }) => {
       <div>
         <div className="p-4 pb-3 flex items-center justify-between border-b border-tg-dark-border/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-tg-blue-600 to-tg-blue-400 flex items-center justify-center text-white shadow-md shadow-tg-blue-500/20">
-              <Cloud className="w-5 h-5 fill-current" />
-            </div>
+            <img src="/logo.png" alt="TGCloud Logo" className="w-9 h-9 rounded-xl shadow-md shadow-tg-blue-500/20 object-cover" />
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-bold text-base tracking-tight text-white">TGCloud</span>

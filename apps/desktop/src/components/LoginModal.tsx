@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Cloud, ShieldCheck, ArrowRight, Lock, KeyRound, AlertCircle } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Lock, KeyRound, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const LoginModal: React.FC = () => {
@@ -58,9 +58,7 @@ export const LoginModal: React.FC = () => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-tg-dark-bg select-none">
       <div className="relative w-full max-w-md bg-tg-dark-surface border border-tg-dark-border rounded-3xl shadow-2xl p-8 flex flex-col items-center text-center">
         {/* Brand Icon */}
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-tg-blue-600 to-tg-blue-400 flex items-center justify-center text-white shadow-xl shadow-tg-blue-500/25 mb-5">
-          <Cloud className="w-9 h-9 fill-current" />
-        </div>
+        <img src="/logo.png" alt="TGCloud Logo" className="w-16 h-16 rounded-2xl shadow-xl shadow-tg-blue-500/25 mb-5 object-cover" />
 
         <h1 className="text-2xl font-bold text-white tracking-tight">TGCloud</h1>
         <p className="text-xs text-tg-dark-muted mt-1 max-w-xs">

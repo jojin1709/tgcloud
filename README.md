@@ -3,7 +3,7 @@
 
 <div align="center">
 
-<img src="./assets/banner.svg" alt="TGCloud Banner by JOJIN JOHN" width="100%">
+<img src="./assets/banner.png" alt="TGCloud Banner by JOJIN JOHN" width="100%">
 
 <br/>
 

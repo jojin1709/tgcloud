@@ -40,6 +40,9 @@ Thumbs.db
 dist/
 dist-ssr/
 build/
+release-assets/
+*.exe
+*.apk
 *.tsbuildinfo
 
 # Flutter / Mobile
