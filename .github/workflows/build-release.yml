@@ -23,13 +23,19 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android NDK & Build Tools
+      - name: Configure Android SDK & NDK Environment
         run: |
-          ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125" "build-tools;34.0.0" "platforms;android-34"
-          echo "NDK_HOME=${ANDROID_HOME}/ndk/26.1.10909125" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          NDK_PATH=$(find $ANDROID_HOME/ndk -maxdepth 1 -mindepth 1 2>/dev/null | sort -V | tail -n 1)
+          if [ -z "$NDK_PATH" ]; then
+            echo "Installing NDK via sdkmanager..."
+            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+            $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125"
+            NDK_PATH="$ANDROID_HOME/ndk/26.1.10909125"
+          fi
+          echo "Selected NDK: $NDK_PATH"
+          echo "NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
