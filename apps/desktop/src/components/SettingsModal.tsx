@@ -103,9 +103,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in select-none">
       <div className="fixed inset-0" onClick={onClose} />
 
-      <div className="relative w-full max-w-2xl bg-tg-dark-surface border border-tg-dark-border rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[580px] z-10">
+      <div className="relative w-full max-w-2xl bg-tg-dark-surface border border-tg-dark-border rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[580px] max-h-[90vh] z-10">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-tg-dark-border bg-tg-dark-bg/60">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-tg-dark-border bg-tg-dark-bg/60">
           <h2 className="text-base font-bold text-white">Settings</h2>
           <button
             onClick={onClose}
@@ -116,14 +116,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         </div>
 
         {/* Body Layout: Sidebar Tabs + Content */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Tabs Sidebar */}
-          <div className="w-48 bg-tg-dark-bg/40 border-r border-tg-dark-border p-3 space-y-1">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          {/* Tabs Sidebar (Horizontal scroll on mobile, vertical sidebar on desktop) */}
+          <div className="w-full md:w-48 bg-tg-dark-bg/40 border-b md:border-b-0 md:border-r border-tg-dark-border p-2 md:p-3 flex md:flex-col gap-1 overflow-x-auto md:overflow-x-visible shrink-0">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3 py-1.5 md:py-2 rounded-xl text-xs font-semibold transition-all shrink-0 md:w-full ${
                   activeTab === tab.id
                     ? 'bg-tg-blue-500 text-white shadow-sm'
                     : 'text-tg-dark-muted hover:text-white hover:bg-tg-dark-surface'
@@ -136,7 +136,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 overflow-y-auto p-6 text-sm">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 text-sm">
             {activeTab === 'account' && (
               <div className="space-y-4">
                 <h3 className="text-sm font-bold text-white mb-2">Telegram Account</h3>

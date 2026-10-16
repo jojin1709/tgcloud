@@ -63,14 +63,14 @@ export const FileCard: React.FC<FileCardProps> = ({
   return (
     <div
       onDoubleClick={() => onPreview(file)}
-      className="group relative p-3.5 rounded-2xl bg-tg-dark-surface border border-tg-dark-border hover:border-tg-blue-500/40 hover:bg-tg-dark-surfaceHover/80 transition-all duration-200 card-hover flex flex-col justify-between"
+      className="group relative p-3 sm:p-3.5 rounded-2xl bg-tg-dark-surface border border-tg-dark-border hover:border-tg-blue-500/40 hover:bg-tg-dark-surfaceHover/80 transition-all duration-200 card-hover flex flex-col justify-between"
     >
       <div>
         {/* Card Top: Category Icon & Actions */}
         <div className="flex items-start justify-between">
           <div
             onClick={() => onPreview(file)}
-            className="w-12 h-12 rounded-xl bg-tg-dark-bg/80 border border-tg-dark-border flex items-center justify-center group-hover:scale-105 transition-all cursor-pointer"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-tg-dark-bg/80 border border-tg-dark-border flex items-center justify-center group-hover:scale-105 transition-all cursor-pointer shrink-0"
           >
             {getIcon()}
           </div>
@@ -196,27 +196,27 @@ export const FileCard: React.FC<FileCardProps> = ({
         </div>
 
         {/* File Information */}
-        <div className="mt-3" onClick={() => onPreview(file)}>
-          <h3 className="font-medium text-sm text-white truncate cursor-pointer" title={file.name}>
+        <div className="mt-2.5 sm:mt-3" onClick={() => onPreview(file)}>
+          <h3 className="font-medium text-xs sm:text-sm text-white truncate cursor-pointer" title={file.name}>
             {file.name}
           </h3>
-          <p className="text-[11px] text-tg-dark-muted mt-0.5 flex items-center justify-between">
-            <span>{formatBytes(file.size)}</span>
-            <span>{formatDate(file.modifiedAt)}</span>
+          <p className="text-[10px] sm:text-[11px] text-tg-dark-muted mt-1 flex items-center justify-between gap-2 overflow-hidden">
+            <span className="shrink-0 font-medium">{formatBytes(file.size)}</span>
+            <span className="truncate whitespace-nowrap text-right">{formatDate(file.modifiedAt)}</span>
           </p>
         </div>
       </div>
 
       {/* Cloud Sync Status Pill */}
-      <div className="mt-3 pt-2.5 border-t border-tg-dark-border/60 flex items-center justify-between text-[11px]">
-        <span className="text-tg-blue-400/90 font-medium flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          Telegram Synced
+      <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-2.5 border-t border-tg-dark-border/60 flex items-center justify-between text-[10px] sm:text-[11px] gap-1">
+        <span className="text-tg-blue-400/90 font-medium flex items-center gap-1.5 truncate">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span className="truncate">Telegram Synced</span>
         </span>
         {!isTrashView && (
           <button
             onClick={() => onDownload(file)}
-            className="text-tg-dark-muted hover:text-white p-1 rounded-md hover:bg-tg-dark-surfaceHover transition-colors"
+            className="text-tg-dark-muted hover:text-white p-1 rounded-md hover:bg-tg-dark-surfaceHover transition-colors shrink-0"
             title="Download file"
           >
             <Download className="w-3.5 h-3.5" />

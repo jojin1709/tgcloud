@@ -65,31 +65,31 @@ export const FileRow: React.FC<FileRowProps> = ({
       onDoubleClick={() => onPreview(file)}
       className="group border-b border-tg-dark-border/50 hover:bg-tg-dark-surfaceHover/60 transition-colors text-sm cursor-pointer select-none"
     >
-      <td className="py-3 px-4 flex items-center gap-3">
+      <td className="py-3 px-3 sm:px-4 flex items-center gap-2.5 sm:gap-3 min-w-0">
         <div className="w-7 h-7 rounded-lg bg-tg-dark-bg/80 border border-tg-dark-border flex items-center justify-center shrink-0">
           {getIcon()}
         </div>
-        <span className="font-medium text-white truncate max-w-md group-hover:text-tg-blue-300 transition-colors" title={file.name}>
+        <span className="font-medium text-white truncate max-w-xs sm:max-w-md group-hover:text-tg-blue-300 transition-colors" title={file.name}>
           {file.name}
         </span>
       </td>
 
-      <td className="py-3 px-4 text-tg-dark-muted text-xs whitespace-nowrap">
+      <td className="hidden md:table-cell py-3 px-3 sm:px-4 text-tg-dark-muted text-xs whitespace-nowrap">
         {formatDate(file.modifiedAt)}
       </td>
 
-      <td className="py-3 px-4 text-tg-dark-muted text-xs whitespace-nowrap">
+      <td className="py-3 px-3 sm:px-4 text-tg-dark-muted text-xs whitespace-nowrap">
         {formatBytes(file.size)}
       </td>
 
-      <td className="py-3 px-4 text-xs whitespace-nowrap">
+      <td className="hidden sm:table-cell py-3 px-3 sm:px-4 text-xs whitespace-nowrap">
         <span className="text-emerald-400/90 flex items-center gap-1.5 font-medium">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
           Synced
         </span>
       </td>
 
-      <td className="py-3 px-4 text-right whitespace-nowrap">
+      <td className="py-3 px-3 sm:px-4 text-right whitespace-nowrap">
         <div className="flex items-center justify-end gap-1.5">
           {!isTrashView && (
             <>

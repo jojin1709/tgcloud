@@ -55,8 +55,8 @@ export const LoginModal: React.FC = () => {
   const errorMsg = localError || authState.error;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-tg-dark-bg select-none">
-      <div className="relative w-full max-w-md bg-tg-dark-surface border border-tg-dark-border rounded-3xl shadow-2xl p-8 flex flex-col items-center text-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-tg-dark-bg select-none overflow-y-auto">
+      <div className="relative w-full max-w-md bg-tg-dark-surface border border-tg-dark-border rounded-3xl shadow-2xl p-6 sm:p-8 flex flex-col items-center text-center my-auto">
         {/* Brand Icon */}
         <img src="/logo.png" alt="TGCloud Logo" className="w-16 h-16 rounded-2xl shadow-xl shadow-tg-blue-500/25 mb-5 object-cover" />
 

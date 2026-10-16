@@ -21,14 +21,14 @@ export const FolderCard: React.FC<FolderCardProps> = ({
   return (
     <div
       onDoubleClick={() => onOpen(folder.id, folder.name)}
-      className="group relative p-4 rounded-2xl bg-tg-dark-surface border border-tg-dark-border hover:border-tg-blue-500/40 hover:bg-tg-dark-surfaceHover/80 transition-all duration-200 card-hover cursor-pointer"
+      className="group relative p-3 sm:p-4 rounded-2xl bg-tg-dark-surface border border-tg-dark-border hover:border-tg-blue-500/40 hover:bg-tg-dark-surfaceHover/80 transition-all duration-200 card-hover cursor-pointer"
     >
       <div className="flex items-start justify-between">
         <div
           onClick={() => onOpen(folder.id, folder.name)}
-          className="w-12 h-12 rounded-xl bg-tg-blue-500/10 border border-tg-blue-500/20 text-tg-blue-400 flex items-center justify-center group-hover:scale-105 group-hover:bg-tg-blue-500/20 transition-all"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-tg-blue-500/10 border border-tg-blue-500/20 text-tg-blue-400 flex items-center justify-center group-hover:scale-105 group-hover:bg-tg-blue-500/20 transition-all shrink-0"
         >
-          <Folder className="w-6 h-6 fill-current" />
+          <Folder className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
         </div>
 
         <div className="relative">

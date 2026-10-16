@@ -33,12 +33,12 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
 
       <div className="relative w-full max-w-3xl bg-tg-dark-surface border border-tg-dark-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] z-10">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-tg-dark-border bg-tg-dark-bg/60">
-          <div className="flex items-center gap-2.5 truncate max-w-lg">
-            <span className="font-semibold text-white truncate text-base" title={file.name}>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-tg-dark-border bg-tg-dark-bg/60">
+          <div className="flex items-center gap-2 sm:gap-2.5 truncate max-w-xs sm:max-w-lg min-w-0">
+            <span className="font-semibold text-white truncate text-sm sm:text-base" title={file.name}>
               {file.name}
             </span>
-            <span className="text-xs bg-tg-blue-500/10 text-tg-blue-400 border border-tg-blue-500/20 px-2 py-0.5 rounded-full shrink-0">
+            <span className="text-[11px] sm:text-xs bg-tg-blue-500/10 text-tg-blue-400 border border-tg-blue-500/20 px-2 py-0.5 rounded-full shrink-0">
               {formatBytes(file.size)}
             </span>
           </div>
@@ -46,14 +46,14 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
           <div className="flex items-center gap-2">
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-xs font-semibold shadow-md shadow-tg-blue-500/20 transition-all"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-xs font-semibold shadow-md shadow-tg-blue-500/20 transition-all shrink-0"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Download</span>
+              <span className="hidden sm:inline">Download</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-xl text-tg-dark-muted hover:text-white hover:bg-tg-dark-surfaceHover transition-colors"
+              className="p-1.5 rounded-xl text-tg-dark-muted hover:text-white hover:bg-tg-dark-surfaceHover transition-colors shrink-0"
             >
               <X className="w-5 h-5" />
             </button>

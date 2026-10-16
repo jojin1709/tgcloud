@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Send,
   Zap,
+  X,
 } from 'lucide-react';
 import { ActiveNavSection, useFiles } from '../context/FilesContext';
 import { useAuth } from '../context/AuthContext';
@@ -15,9 +16,15 @@ import { formatBytes } from '../lib/utils';
 
 interface SidebarProps {
   onOpenSettings: () => void;
+  isOpenMobile?: boolean;
+  onCloseMobile?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onOpenSettings }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  onOpenSettings,
+  isOpenMobile = false,
+  onCloseMobile,
+}) => {
   const { navSection, setNavSection, stats } = useFiles();
   const { authState, logout, isTauri } = useAuth();
   const user = authState.user;
@@ -32,7 +39,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSettings }) => {
   const totalBytes = stats?.totalBytesUsed || 0;
 
   return (
-    <aside className="w-64 h-full bg-tg-dark-surface border-r border-tg-dark-border flex flex-col justify-between shrink-0 select-none">
+    <aside
+      className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] h-full bg-tg-dark-surface border-r border-tg-dark-border flex flex-col justify-between select-none transition-transform duration-300 ease-in-out md:static md:translate-x-0 md:w-64 md:z-auto md:shrink-0 ${
+        isOpenMobile ? 'translate-x-0 shadow-2xl shadow-black/80' : '-translate-x-full md:translate-x-0'
+      }`}
+    >
       {/* App Header & Branding */}
       <div>
         <div className="p-4 pb-3 flex items-center justify-between border-b border-tg-dark-border/60">
@@ -51,6 +62,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSettings }) => {
               </p>
             </div>
           </div>
+
+          {/* Close drawer button on mobile */}
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="md:hidden p-1.5 rounded-lg text-tg-dark-muted hover:text-white hover:bg-tg-dark-surfaceHover transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Navigation Links */}
@@ -63,7 +85,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSettings }) => {
             return (
               <button
                 key={item.id}
-                onClick={() => setNavSection(item.id)}
+                onClick={() => {
+                  setNavSection(item.id);
+                  onCloseMobile?.();
+                }}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                   isActive
                     ? 'bg-tg-blue-500 text-white shadow-sm shadow-tg-blue-500/30 font-semibold'
@@ -135,14 +160,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSettings }) => {
           </div>
           <div className="flex items-center gap-1">
             <button
-              onClick={onOpenSettings}
+              onClick={() => {
+                onOpenSettings();
+                onCloseMobile?.();
+              }}
               className="p-1.5 rounded-lg text-tg-dark-muted hover:text-white hover:bg-tg-dark-surfaceHover transition-colors"
               title="Settings"
             >
               <SettingsIcon className="w-4 h-4" />
             </button>
             <button
-              onClick={logout}
+              onClick={() => {
+                logout();
+                onCloseMobile?.();
+              }}
               className="p-1.5 rounded-lg text-tg-dark-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
               title="Logout"
             >

@@ -134,7 +134,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`relative flex-1 overflow-y-auto p-6 flex flex-col gap-6 select-none ${
+      className={`relative flex-1 overflow-y-auto p-3 sm:p-6 flex flex-col gap-4 sm:gap-6 select-none ${
         isDragOver ? 'bg-tg-blue-500/5 ring-2 ring-inset ring-tg-blue-500/50' : ''
       }`}
     >
@@ -150,30 +150,30 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       )}
 
       {/* Breadcrumb Navigation & Section Title */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between overflow-x-auto pb-0.5">
         <div className="flex items-center gap-1.5 text-sm">
           {navSection === 'files' ? (
             breadcrumbs.map((crumb, idx) => (
               <React.Fragment key={crumb.id || 'root'}>
-                {idx > 0 && <ChevronRight className="w-4 h-4 text-tg-dark-muted/60" />}
+                {idx > 0 && <ChevronRight className="w-4 h-4 text-tg-dark-muted/60 shrink-0" />}
                 <button
                   onClick={() => navigateToBreadcrumb(idx)}
-                  className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors ${
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors truncate ${
                     idx === breadcrumbs.length - 1
                       ? 'text-white font-semibold bg-tg-dark-surface'
                       : 'text-tg-dark-muted hover:text-white'
                   }`}
                 >
-                  {idx === 0 && <Home className="w-3.5 h-3.5" />}
-                  <span>{crumb.name}</span>
+                  {idx === 0 && <Home className="w-3.5 h-3.5 shrink-0" />}
+                  <span className="truncate">{crumb.name}</span>
                 </button>
               </React.Fragment>
             ))
           ) : (
             <div className="flex items-center gap-2">
-              {isStarred && <Star className="w-5 h-5 text-amber-400 fill-current" />}
-              {isTrash && <Trash2 className="w-5 h-5 text-red-400" />}
-              <h1 className="text-lg font-bold text-white capitalize">{navSection} Files</h1>
+              {isStarred && <Star className="w-5 h-5 text-amber-400 fill-current shrink-0" />}
+              {isTrash && <Trash2 className="w-5 h-5 text-red-400 shrink-0" />}
+              <h1 className="text-base sm:text-lg font-bold text-white capitalize">{navSection} Files</h1>
             </div>
           )}
         </div>
@@ -182,11 +182,11 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       {/* Folders Section (Only shown in My Files) */}
       {navSection === 'files' && folders.length > 0 && (
         <div>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-tg-dark-muted mb-3 flex items-center gap-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-tg-dark-muted mb-2.5 flex items-center gap-2">
             <FolderOpen className="w-3.5 h-3.5 text-tg-blue-400" />
             Folders ({folders.length})
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3.5">
             {folders.map((folder) => (
               <FolderCard
                 key={folder.id}
@@ -204,12 +204,12 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       <div className="flex-1 flex flex-col">
         {files.length > 0 ? (
           <div>
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-tg-dark-muted mb-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-tg-dark-muted mb-2.5">
               Files ({files.length})
             </h2>
 
             {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3.5">
                 {files.map((file) => (
                   <FileCard
                     key={file.id}
@@ -226,15 +226,15 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                 ))}
               </div>
             ) : (
-              <div className="rounded-2xl border border-tg-dark-border bg-tg-dark-surface overflow-hidden">
-                <table className="w-full text-left border-collapse">
+              <div className="rounded-2xl border border-tg-dark-border bg-tg-dark-surface overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-full">
                   <thead>
                     <tr className="border-b border-tg-dark-border/80 text-[11px] font-semibold text-tg-dark-muted uppercase tracking-wider bg-tg-dark-bg/40">
-                      <th className="py-2.5 px-4">Name</th>
-                      <th className="py-2.5 px-4">Date Modified</th>
-                      <th className="py-2.5 px-4">Size</th>
-                      <th className="py-2.5 px-4">Status</th>
-                      <th className="py-2.5 px-4 text-right">Actions</th>
+                      <th className="py-2.5 px-3 sm:px-4">Name</th>
+                      <th className="hidden md:table-cell py-2.5 px-3 sm:px-4">Date Modified</th>
+                      <th className="py-2.5 px-3 sm:px-4">Size</th>
+                      <th className="hidden sm:table-cell py-2.5 px-3 sm:px-4">Status</th>
+                      <th className="py-2.5 px-3 sm:px-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -35,6 +35,7 @@ const MainLayout: React.FC = () => {
     type: 'file',
   });
 
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showSkip, setShowSkip] = useState(false);
 
   React.useEffect(() => {
@@ -71,13 +72,31 @@ const MainLayout: React.FC = () => {
   }
 
   return (
-    <div className="h-screen w-screen flex bg-tg-dark-bg overflow-hidden">
-      {/* Sidebar Navigation */}
-      <Sidebar onOpenSettings={() => setIsSettingsOpen(true)} />
+    <div className="h-screen w-screen flex bg-tg-dark-bg overflow-hidden relative">
+      {/* Mobile Drawer Backdrop */}
+      {isMobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm md:hidden transition-opacity"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Navigation (Responsive Drawer on Mobile, Fixed on Desktop) */}
+      <Sidebar
+        isOpenMobile={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        onOpenSettings={() => {
+          setIsMobileSidebarOpen(false);
+          setIsSettingsOpen(true);
+        }}
+      />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <Header onNewFolderClick={() => setIsNewFolderOpen(true)} />
+      <div className="flex-1 flex flex-col h-full overflow-hidden w-full min-w-0">
+        <Header
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          onNewFolderClick={() => setIsNewFolderOpen(true)}
+        />
         <FileBrowser
           onPreviewFile={(file) => setPreviewFile(file)}
           onRenameFile={(file) =>
