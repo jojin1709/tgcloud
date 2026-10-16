@@ -34,7 +34,19 @@ const MainLayout: React.FC = () => {
     type: 'file',
   });
 
-  if (loading) {
+  const [showSkip, setShowSkip] = useState(false);
+
+  React.useEffect(() => {
+    let t: NodeJS.Timeout;
+    if (loading) {
+      t = setTimeout(() => setShowSkip(true), 2500);
+    } else {
+      setShowSkip(false);
+    }
+    return () => clearTimeout(t);
+  }, [loading]);
+
+  if (loading && !showSkip) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-tg-dark-bg text-white">
         <div className="flex flex-col items-center gap-3">

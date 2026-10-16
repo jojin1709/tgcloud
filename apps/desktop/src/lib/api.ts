@@ -192,7 +192,21 @@ export const api = {
   // Auth
   async getAuthState(): Promise<AuthState> {
     if (isRunningInTauri()) {
-      return await invoke<AuthState>('get_auth_state');
+      try {
+        const timeoutPromise = new Promise<AuthState>((_, reject) =>
+          setTimeout(() => reject(new Error('IPC request timed out')), 5000)
+        );
+        return await Promise.race([invoke<AuthState>('get_auth_state'), timeoutPromise]);
+      } catch (err: any) {
+        console.warn('getAuthState failed, defaulting to need_phone:', err);
+        return {
+          step: 'need_phone',
+          user: null,
+          connectedVaultId: null,
+          connectedVaultTitle: null,
+          error: null,
+        };
+      }
     }
     return mock.getAuthState();
   },

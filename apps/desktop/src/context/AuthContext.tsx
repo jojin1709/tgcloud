@@ -38,6 +38,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     refreshAuth();
+    const fallbackTimer = setTimeout(() => {
+      setLoading(false);
+    }, 3500);
+    return () => clearTimeout(fallbackTimer);
   }, []);
 
   const sendCode = async (phone: string) => {
