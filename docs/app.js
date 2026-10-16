@@ -1,85 +1,20 @@
-// TGCloud Interactive Scripts
+// TGCloud Documentation & Showcase Interactive Controller
 // Developed for JOJIN JOHN
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Animated Particle Canvas
-  initParticles();
+  // 1. Initialize Lucide Vector Icons
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
 
-  // 2. Interactive Transfer Simulator
+  // 2. Initialize Interactive Transfer Telemetry Engine
   initSimulator();
 
-  // 3. FAQ Accordion
+  // 3. Initialize FAQ Accordion
   initAccordion();
 });
 
-// Particles Starfield / Network Effect
-function initParticles() {
-  const canvas = document.getElementById('bg-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-
-  let width = (canvas.width = window.innerWidth);
-  let height = (canvas.height = window.innerHeight);
-
-  window.addEventListener('resize', () => {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-  });
-
-  const particleCount = Math.min(width > 768 ? 65 : 30, 80);
-  const particles = [];
-
-  for (let i = 0; i < particleCount; i++) {
-    particles.push({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      radius: Math.random() * 1.8 + 0.6,
-      alpha: Math.random() * 0.5 + 0.2,
-    });
-  }
-
-  function render() {
-    ctx.clearRect(0, 0, width, height);
-
-    for (let i = 0; i < particles.length; i++) {
-      const p = particles[i];
-      p.x += p.vx;
-      p.y += p.vy;
-
-      if (p.x < 0) p.x = width;
-      if (p.x > width) p.x = 0;
-      if (p.y < 0) p.y = height;
-      if (p.y > height) p.y = 0;
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(44, 165, 224, ${p.alpha})`;
-      ctx.fill();
-
-      // Connect nearby particles
-      for (let j = i + 1; j < particles.length; j++) {
-        const p2 = particles[j];
-        const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-        if (dist < 120) {
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p2.x, p2.y);
-          ctx.strokeStyle = `rgba(44, 165, 224, ${0.15 * (1 - dist / 120)})`;
-          ctx.lineWidth = 0.6;
-          ctx.stroke();
-        }
-      }
-    }
-
-    requestAnimationFrame(render);
-  }
-
-  render();
-}
-
-// Transfer Telemetry Simulator
+// Transfer Telemetry Simulator Engine
 function initSimulator() {
   const btnUpload = document.getElementById('sim-start-upload');
   const btnDownload = document.getElementById('sim-start-download');
@@ -111,10 +46,10 @@ function initSimulator() {
     const baseSpeed = isUpload ? 18.5 : 34.2;
 
     simInterval = setInterval(() => {
-      // Add random jitter to speed
-      const speedJitter = (Math.random() - 0.5) * 4;
+      // Natural speed jitter
+      const speedJitter = (Math.random() - 0.5) * 3.5;
       const currentSpeed = Math.max(12, baseSpeed + speedJitter);
-      const deltaMB = (currentSpeed * 0.1);
+      const deltaMB = currentSpeed * 0.1;
 
       currentMB = Math.min(totalSizeMB, currentMB + deltaMB);
       const percent = Math.min(100, (currentMB / totalSizeMB) * 100);
@@ -126,14 +61,14 @@ function initSimulator() {
       progressPercentEl.textContent = `${percent.toFixed(0)}%`;
       speedEl.textContent = `${currentSpeed.toFixed(1)} MB/s`;
       transferredEl.textContent = `${currentMB.toFixed(1)} / ${totalSizeMB.toFixed(1)} MB`;
-      etaEl.textContent = etaSeconds > 0 ? `${etaSeconds}s` : 'Done';
+      etaEl.textContent = etaSeconds > 0 ? `${etaSeconds}s` : 'Complete';
       chunksEl.textContent = `${chunksProcessed} / ${totalChunks} (512 KB)`;
 
       if (currentMB >= totalSizeMB) {
         clearInterval(simInterval);
         simInterval = null;
         speedEl.textContent = '0.0 MB/s';
-        etaEl.textContent = 'Complete';
+        etaEl.textContent = 'Done';
       }
     }, 100);
   }
@@ -141,20 +76,21 @@ function initSimulator() {
   btnUpload.addEventListener('click', () => runSimulation('upload'));
   btnDownload.addEventListener('click', () => runSimulation('download'));
 
-  // Run initial upload simulation
+  // Run initial preview simulation
   runSimulation('upload');
 }
 
-// Accordion Expand / Collapse
+// FAQ Accordion
 function initAccordion() {
-  const items = document.querySelectorAll('.faq-item');
-  items.forEach((item) => {
-    const question = item.querySelector('.faq-question');
-    question.addEventListener('click', () => {
-      const isActive = item.classList.contains('active');
-      items.forEach((i) => i.classList.remove('active'));
+  const cards = document.querySelectorAll('.faq-card');
+  cards.forEach((card) => {
+    const header = card.querySelector('.faq-header');
+    if (!header) return;
+    header.addEventListener('click', () => {
+      const isActive = card.classList.contains('active');
+      cards.forEach((c) => c.classList.remove('active'));
       if (!isActive) {
-        item.classList.add('active');
+        card.classList.add('active');
       }
     });
   });
