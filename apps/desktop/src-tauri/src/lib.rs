@@ -1,6 +1,7 @@
 pub mod error;
 pub mod models;
 pub mod db;
+pub mod session;
 pub mod telegram;
 pub mod transfer_manager;
 pub mod commands;

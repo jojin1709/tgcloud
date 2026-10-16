@@ -16,8 +16,11 @@ fn main() {
         let bt = std::backtrace::Backtrace::force_capture();
         let msg = format!("PANIC: {}\nLocation: {}\nBacktrace:\n{:?}", payload, location, bt);
         eprintln!("{}", msg);
-        if let Ok(mut f) = File::create(r"d:\telegram storage\crash.log") {
-            let _ = f.write_all(msg.as_bytes());
+        if let Some(dirs) = directories::ProjectDirs::from("com", "tgcloud", "desktop") {
+            let _ = std::fs::create_dir_all(dirs.data_dir());
+            if let Ok(mut f) = File::create(dirs.data_dir().join("crash.log")) {
+                let _ = f.write_all(msg.as_bytes());
+            }
         }
     }));
 

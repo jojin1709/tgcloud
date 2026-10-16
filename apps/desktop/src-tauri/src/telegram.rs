@@ -4,10 +4,10 @@ use tokio::sync::Mutex;
 use grammers_client::client::{LoginToken, PasswordToken};
 use grammers_client::sender::SenderPool;
 use grammers_client::{Client, SignInError};
-use grammers_session::storages::SqliteSession;
 use grammers_tl_types as tl;
 use crate::error::AppError;
 use crate::models::TGUser;
+use crate::session::FileSession;
 
 pub struct TelegramService {
     client: Option<Client>,
@@ -39,7 +39,7 @@ impl TelegramService {
             return Ok(c.clone());
         }
 
-        let session = Arc::new(SqliteSession::open(&self.session_path).await?);
+        let session = Arc::new(FileSession::load_or_create(self.session_path.clone())?);
         let pool = SenderPool::new(session, self.api_id);
         tokio::spawn(pool.runner.run());
         let client = Client::new(pool.handle);

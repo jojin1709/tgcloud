@@ -88,8 +88,9 @@ impl From<grammers_client::SignInError> for AppError {
     }
 }
 
-impl From<grammers_session::storages::SqliteSessionError> for AppError {
-    fn from(e: grammers_session::storages::SqliteSessionError) -> Self {
+impl From<crate::session::SessionError> for AppError {
+    fn from(e: crate::session::SessionError) -> Self {
         Self::new("SESSION_ERROR", e.to_string())
     }
 }
+
