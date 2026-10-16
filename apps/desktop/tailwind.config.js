@@ -23,13 +23,13 @@ export default {
             900: '#183e63',
           },
           dark: {
-            bg: '#0f141c',
-            surface: '#171e28',
-            surfaceHover: '#1f2937',
-            border: '#263345',
-            input: '#111722',
-            text: '#f3f4f6',
-            muted: '#94a3b8',
+            bg: 'var(--tg-bg)',
+            surface: 'var(--tg-surface)',
+            surfaceHover: 'var(--tg-surface-hover)',
+            border: 'var(--tg-border)',
+            input: 'var(--tg-input)',
+            text: 'var(--tg-text)',
+            muted: 'var(--tg-muted)',
           }
         }
       },

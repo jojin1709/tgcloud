@@ -16,6 +16,25 @@ import { useFiles } from '../context/FilesContext';
 import { api } from '../lib/api';
 import { AppSettings } from '@tgcloud/types';
 
+export const applyAppTheme = (th: 'dark' | 'light' | 'system') => {
+  if (th === 'light') {
+    document.documentElement.classList.add('light');
+    document.documentElement.classList.remove('dark');
+  } else if (th === 'dark') {
+    document.documentElement.classList.remove('light');
+    document.documentElement.classList.add('dark');
+  } else {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (isDark) {
+      document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+  }
+};
+
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -38,14 +57,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   useEffect(() => {
     if (isOpen) {
-      api.getSettings().then(setSettings).catch(console.error);
+      api.getSettings().then((s) => {
+        setSettings(s);
+        applyAppTheme(s.theme as any);
+      }).catch(console.error);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
+  const handleThemeChange = (th: 'dark' | 'light' | 'system') => {
+    setSettings((prev) => ({ ...prev, theme: th }));
+    applyAppTheme(th);
+  };
+
+  const handleBrowseFolder = async () => {
+    const folder = await api.pickFolder();
+    if (folder) {
+      setSettings((prev) => ({ ...prev, downloadLocation: folder }));
+    }
+  };
+
   const handleSave = async () => {
     await api.saveSettings(settings);
+    applyAppTheme(settings.theme as any);
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2000);
   };
@@ -157,6 +192,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         }
                         className="flex-1 bg-tg-dark-bg border border-tg-dark-border rounded-xl px-3 py-2 text-xs text-white"
                       />
+                      <button
+                        type="button"
+                        onClick={handleBrowseFolder}
+                        className="px-3 py-2 bg-tg-dark-bg border border-tg-dark-border rounded-xl text-xs font-semibold text-white hover:bg-tg-dark-surfaceHover transition-colors shrink-0"
+                      >
+                        Browse...
+                      </button>
                     </div>
                   </div>
 
@@ -239,10 +281,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   {['dark', 'light', 'system'].map((th) => (
                     <button
                       key={th}
-                      onClick={() => setSettings({ ...settings, theme: th as any })}
+                      onClick={() => handleThemeChange(th as any)}
                       className={`p-3 rounded-xl border text-xs font-semibold capitalize transition-all ${
                         settings.theme === th
-                          ? 'bg-tg-blue-500/20 border-tg-blue-500 text-tg-blue-400'
+                          ? 'bg-tg-blue-500/20 border-tg-blue-500 text-tg-blue-400 shadow-sm'
                           : 'bg-tg-dark-bg border-tg-dark-border text-tg-dark-muted hover:text-white'
                       }`}
                     >

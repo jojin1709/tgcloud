@@ -7,11 +7,12 @@ import { Header } from './components/Header';
 import { FileBrowser } from './components/FileBrowser';
 import { FilePreviewModal } from './components/FilePreviewModal';
 import { TransfersModal } from './components/TransfersModal';
-import { SettingsModal } from './components/SettingsModal';
+import { SettingsModal, applyAppTheme } from './components/SettingsModal';
 import { NewFolderDialog } from './components/NewFolderDialog';
 import { RenameDialog } from './components/RenameDialog';
 import { LoginModal } from './components/LoginModal';
 import { TGFile } from '@tgcloud/types';
+import { api } from './lib/api';
 
 const MainLayout: React.FC = () => {
   const { authState, loading } = useAuth();
@@ -35,6 +36,14 @@ const MainLayout: React.FC = () => {
   });
 
   const [showSkip, setShowSkip] = useState(false);
+
+  React.useEffect(() => {
+    api.getSettings().then((s) => {
+      if (s?.theme) {
+        applyAppTheme(s.theme as any);
+      }
+    }).catch(console.error);
+  }, []);
 
   React.useEffect(() => {
     let t: NodeJS.Timeout;

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useFiles } from '../context/FilesContext';
 import { useTransfers } from '../context/TransfersContext';
+import { api, isRunningInTauri } from '../lib/api';
 import { TGFile } from '@tgcloud/types';
 import { FolderCard } from './FolderCard';
 import { FileCard } from './FileCard';
@@ -47,11 +48,59 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   const { startDownload, startUpload } = useTransfers();
   const [isDragOver, setIsDragOver] = useState(false);
 
-  const handleDownload = async (file: TGFile) => {
-    // Standard download target path
-    const downloadPath = `C:\\Users\\User\\Downloads\\${file.name}`;
-    await startDownload(file.id, downloadPath);
+  const handleUploadClick = async () => {
+    if (isRunningInTauri()) {
+      const selected = await api.pickFiles();
+      if (selected && selected.length > 0) {
+        for (const filePath of selected) {
+          await startUpload(filePath, currentFolderId);
+        }
+      }
+    }
   };
+
+  const handleDownload = async (file: TGFile) => {
+    if (isRunningInTauri()) {
+      const savePath = await api.pickSaveFile(file.name);
+      if (!savePath) return;
+      await startDownload(file.id, savePath);
+      return;
+    }
+    await startDownload(file.id, file.name);
+  };
+
+  React.useEffect(() => {
+    if (!isRunningInTauri()) return;
+
+    let unlisten: (() => void) | undefined;
+    import('@tauri-apps/api/webview')
+      .then(({ getCurrentWebview }) => {
+        getCurrentWebview()
+          .onDragDropEvent((event) => {
+            if (event.payload.type === 'over' || event.payload.type === 'enter') {
+              setIsDragOver(true);
+            } else if (event.payload.type === 'drop') {
+              setIsDragOver(false);
+              const paths = event.payload.paths;
+              if (paths && paths.length > 0) {
+                for (const p of paths) {
+                  startUpload(p, currentFolderId);
+                }
+              }
+            } else {
+              setIsDragOver(false);
+            }
+          })
+          .then((u) => {
+            unlisten = u;
+          });
+      })
+      .catch(console.error);
+
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, [currentFolderId, startUpload]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -227,8 +276,15 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
             {navSection === 'files' && (
               <div className="flex items-center gap-3 mt-6">
                 <button
+                  onClick={handleUploadClick}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-tg-blue-500 hover:bg-tg-blue-600 text-white shadow-md shadow-tg-blue-500/20 transition-all cursor-pointer"
+                >
+                  <UploadCloud className="w-4 h-4" />
+                  <span>Upload Files</span>
+                </button>
+                <button
                   onClick={onNewFolder}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-tg-dark-surface border border-tg-dark-border text-white hover:bg-tg-dark-surfaceHover transition-colors"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-tg-dark-surface border border-tg-dark-border text-white hover:bg-tg-dark-surfaceHover transition-colors cursor-pointer"
                 >
                   Create Folder
                 </button>

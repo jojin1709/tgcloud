@@ -3,7 +3,52 @@
 @tailwind utilities;
 
 :root {
+  --tg-bg: #0f141c;
+  --tg-surface: #171e28;
+  --tg-surface-hover: #1f2937;
+  --tg-border: #263345;
+  --tg-input: #111722;
+  --tg-text: #f3f4f6;
+  --tg-muted: #94a3b8;
   color-scheme: dark;
+}
+
+html.light {
+  --tg-bg: #f8fafc;
+  --tg-surface: #ffffff;
+  --tg-surface-hover: #f1f5f9;
+  --tg-border: #e2e8f0;
+  --tg-input: #f8fafc;
+  --tg-text: #0f172a;
+  --tg-muted: #64748b;
+  color-scheme: light;
+}
+
+html.light .text-white {
+  color: var(--tg-text);
+}
+
+html.light button.bg-tg-blue-500,
+html.light button.bg-tg-blue-500 *,
+html.light .bg-tg-blue-500 .text-white,
+html.light [class*="bg-tg-blue-500"] .text-white,
+html.light [class*="bg-red-500"] .text-white,
+html.light [class*="bg-gradient-to"] .text-white,
+html.light .bg-tg-blue-500,
+html.light .text-white.keep-white {
+  color: #ffffff !important;
+}
+
+html.light .bg-black\/70 {
+  background-color: rgba(15, 23, 42, 0.45);
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.25);
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.45);
 }
 
 /* Custom modern scrollbars */

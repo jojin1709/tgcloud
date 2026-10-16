@@ -444,6 +444,28 @@ export const api = {
     }
   },
 
+  async pickFiles(): Promise<string[]> {
+    if (isRunningInTauri()) {
+      return await invoke<string[]>('pick_files_dialog');
+    }
+    return [];
+  },
+
+  async pickFolder(): Promise<string | null> {
+    if (isRunningInTauri()) {
+      return await invoke<string | null>('pick_folder_dialog');
+    }
+    return null;
+  },
+
+  async pickSaveFile(defaultName: string): Promise<string | null> {
+    if (isRunningInTauri()) {
+      return await invoke<string | null>('pick_save_file_dialog', { defaultName });
+    }
+    return null;
+  },
+
+
   // Event listener
   onTransferUpdate(callback: (transfer: TGTransfer) => void): () => void {
     if (isRunningInTauri()) {

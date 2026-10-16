@@ -83,7 +83,10 @@ pub fn run() {
             clear_completed_transfers,
             get_settings,
             save_settings,
-            open_file_in_os
+            open_file_in_os,
+            pick_files_dialog,
+            pick_folder_dialog,
+            pick_save_file_dialog
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

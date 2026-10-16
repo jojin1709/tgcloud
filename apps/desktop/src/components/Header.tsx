@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useFiles } from '../context/FilesContext';
 import { useTransfers } from '../context/TransfersContext';
+import { api, isRunningInTauri } from '../lib/api';
 
 interface HeaderProps {
   onNewFolderClick: () => void;
@@ -44,13 +45,25 @@ export const Header: React.FC<HeaderProps> = ({ onNewFolderClick }) => {
     { id: 'archives', label: 'Archives' },
   ];
 
+  const handleUploadClick = async () => {
+    if (isRunningInTauri()) {
+      const selected = await api.pickFiles();
+      if (selected && selected.length > 0) {
+        for (const filePath of selected) {
+          await startUpload(filePath, currentFolderId);
+        }
+      }
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      // In web demo mode or Tauri with web fallback, use the file name / path
       const filePath = (file as any).path || file.name;
       await startUpload(filePath, currentFolderId);
     }
@@ -187,8 +200,8 @@ export const Header: React.FC<HeaderProps> = ({ onNewFolderClick }) => {
 
         {/* Upload Button */}
         <button
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-tg-blue-500 hover:bg-tg-blue-600 text-white shadow-md shadow-tg-blue-500/30 transition-all active:scale-[0.98]"
+          onClick={handleUploadClick}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-tg-blue-500 hover:bg-tg-blue-600 text-white shadow-md shadow-tg-blue-500/30 transition-all active:scale-[0.98] cursor-pointer"
         >
           <UploadCloud className="w-4 h-4" />
           <span>Upload</span>
