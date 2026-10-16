@@ -123,6 +123,48 @@ pub fn list_files(
 }
 
 #[tauri::command]
+pub async fn sync_telegram_saved_messages(
+    state: State<'_, AppState>,
+    target_folder_id: Option<String>,
+) -> Result<usize, AppError> {
+    let mut telegram = state.telegram.lock().await;
+    if !telegram.is_authorized().await.unwrap_or(false) {
+        return Ok(0);
+    }
+
+    let files_from_tg = telegram.fetch_saved_messages_files().await?;
+    let mut inserted_count = 0;
+
+    for (msg_id, name, size, mime, date) in files_from_tg {
+        if !state.db.has_file_by_message_id(msg_id)? {
+            let file_id = uuid::Uuid::new_v4().to_string();
+            let new_file = TGFile {
+                id: file_id,
+                name,
+                parent_folder_id: target_folder_id.clone(),
+                telegram_chat_id: 0,
+                telegram_message_id: msg_id,
+                telegram_file_id: format!("tg_msg_{}", msg_id),
+                mime_type: mime,
+                size,
+                hash: None,
+                created_at: date,
+                modified_at: date,
+                thumbnail_path: None,
+                status: "synced".to_string(),
+                is_starred: false,
+                is_trash: false,
+            };
+            if state.db.insert_file(&new_file).is_ok() {
+                inserted_count += 1;
+            }
+        }
+    }
+
+    Ok(inserted_count)
+}
+
+#[tauri::command]
 pub fn get_file(state: State<'_, AppState>, id: String) -> Result<Option<TGFile>, AppError> {
     state.db.get_file(&id)
 }

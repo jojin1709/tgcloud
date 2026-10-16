@@ -383,6 +383,13 @@ impl Database {
         }
     }
 
+    pub fn has_file_by_message_id(&self, message_id: i32) -> Result<bool, AppError> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare("SELECT 1 FROM files WHERE telegram_message_id = ?1 LIMIT 1")?;
+        let exists = stmt.exists(params![message_id])?;
+        Ok(exists)
+    }
+
     pub fn rename_file(&self, id: &str, new_name: &str) -> Result<(), AppError> {
         let trimmed = new_name.trim();
         if trimmed.is_empty() {

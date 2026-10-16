@@ -66,6 +66,14 @@ export const FilesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const isStarred = navSection === 'starred';
       const isTrash = navSection === 'trash';
 
+      if (!isStarred && !isTrash) {
+        try {
+          await api.syncTelegramMessages(currentFolderId);
+        } catch (e) {
+          console.warn('Telegram Saved Messages sync:', e);
+        }
+      }
+
       if (searchQuery.trim().length > 0) {
         const searchResults = await api.searchFiles({
           term: searchQuery,

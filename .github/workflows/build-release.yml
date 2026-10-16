@@ -63,6 +63,11 @@ jobs:
           cd apps/desktop
           npx tauri android init --ci
 
+      - name: Copy Android Launcher Icons
+        run: |
+          mkdir -p apps/desktop/src-tauri/gen/android/app/src/main/res
+          cp -rf apps/desktop/src-tauri/icons/android/* apps/desktop/src-tauri/gen/android/app/src/main/res/ || true
+
       - name: Configure Android Permissions & Manifest
         run: |
           python3 -c "

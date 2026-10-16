@@ -274,6 +274,13 @@ export const api = {
     mock.deleteFolder(id);
   },
 
+  async syncTelegramMessages(targetFolderId?: string | null): Promise<number> {
+    if (isRunningInTauri()) {
+      return await invoke<number>('sync_telegram_saved_messages', { targetFolderId });
+    }
+    return 0;
+  },
+
   // Files
   async listFiles(
     folderId: string | null = null,

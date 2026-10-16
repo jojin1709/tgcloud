@@ -169,4 +169,44 @@ impl TelegramService {
         }
         Ok(false)
     }
+
+    pub async fn fetch_saved_messages_files(&mut self) -> Result<Vec<(i32, String, i64, String, i64)>, AppError> {
+        let client = self.ensure_client().await?;
+        let mut iter = client.iter_messages(tl::types::InputPeerSelf {});
+        let mut result = Vec::new();
+
+        let mut count = 0;
+        while let Some(msg) = iter.next().await? {
+            count += 1;
+            if count > 100 {
+                break;
+            }
+
+            let msg_id = msg.id();
+            let date = msg.date().as_millisecond();
+
+            if let Some(media) = msg.media() {
+                match media {
+                    grammers_client::media::Media::Document(doc) => {
+                        let name = doc.name()
+                            .filter(|s| !s.is_empty())
+                            .map(|s| s.to_string())
+                            .unwrap_or_else(|| format!("document_{}", msg_id));
+                        let size = doc.size().unwrap_or(0) as i64;
+                        let mime = doc.mime_type().unwrap_or("application/octet-stream").to_string();
+                        result.push((msg_id, name, size, mime, date));
+                    }
+                    grammers_client::media::Media::Photo(_photo) => {
+                        let name = format!("photo_{}.jpg", msg_id);
+                        let size = 0i64;
+                        let mime = "image/jpeg".to_string();
+                        result.push((msg_id, name, size, mime, date));
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        Ok(result)
+    }
 }

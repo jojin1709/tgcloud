@@ -17,44 +17,59 @@ use transfer_manager::TransferManager;
 pub fn run() {
     let _ = dotenvy::dotenv();
 
-    let data_dir = directories::ProjectDirs::from("com", "tgcloud", "desktop")
-        .map(|p| p.data_dir().to_path_buf())
-        .or_else(|| {
-            std::env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join(".tgcloud"))
-        })
-        .unwrap_or_else(|| std::path::PathBuf::from("."));
-    let _ = std::fs::create_dir_all(&data_dir);
-
-    let db_path = data_dir.join("tgcloud.db");
-    let session_path = data_dir.join("tgcloud.session");
-
-    let db = Database::new(&db_path).expect("Failed to initialize SQLite database");
-
-    // Load Telegram API ID and Hash from environment or use official built-in client credentials
-    let api_id: i32 = std::env::var("TELEGRAM_API_ID")
-        .ok()
-        .and_then(|v| v.parse().ok())
-        .unwrap_or(34949606);
-
-    let api_hash = std::env::var("TELEGRAM_API_HASH")
-        .unwrap_or_else(|_| "4a68d08a7744c1af7ae394a08718de3d".to_string());
-
-    let telegram_service = Arc::new(Mutex::new(TelegramService::new(
-        api_id,
-        api_hash,
-        session_path,
-    )));
-
-    let transfer_manager = Arc::new(TransferManager::new(db.clone(), telegram_service.clone()));
-
-    let app_state = AppState {
-        db,
-        telegram: telegram_service,
-        transfers: transfer_manager,
-    };
-
     tauri::Builder::default()
-        .manage(app_state)
+        .setup(|app| {
+            use tauri::Manager;
+
+            #[cfg(target_os = "android")]
+            let data_dir = app.path().app_data_dir()
+                .unwrap_or_else(|_| std::path::PathBuf::from("/data/data/com.tgcloud.desktop/files"));
+
+            #[cfg(not(target_os = "android"))]
+            let data_dir = app.path().app_data_dir()
+                .or_else(|_| {
+                    directories::ProjectDirs::from("com", "tgcloud", "desktop")
+                        .map(|p| p.data_dir().to_path_buf())
+                        .ok_or(tauri::Error::UnknownPath)
+                })
+                .unwrap_or_else(|_| std::path::PathBuf::from("."));
+
+            let _ = std::fs::create_dir_all(&data_dir);
+
+            let db_path = data_dir.join("tgcloud.db");
+            let session_path = data_dir.join("tgcloud.session");
+
+            let db = Database::new(&db_path).unwrap_or_else(|e| {
+                eprintln!("Warning: failed to open SQLite at {:?}: {}, using in-memory DB", db_path, e);
+                Database::in_memory().expect("Failed to initialize in-memory SQLite database")
+            });
+
+            // Load Telegram API ID and Hash from environment or use official built-in client credentials
+            let api_id: i32 = std::env::var("TELEGRAM_API_ID")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(34949606);
+
+            let api_hash = std::env::var("TELEGRAM_API_HASH")
+                .unwrap_or_else(|_| "4a68d08a7744c1af7ae394a08718de3d".to_string());
+
+            let telegram_service = Arc::new(Mutex::new(TelegramService::new(
+                api_id,
+                api_hash,
+                session_path,
+            )));
+
+            let transfer_manager = Arc::new(TransferManager::new(db.clone(), telegram_service.clone()));
+
+            let app_state = AppState {
+                db,
+                telegram: telegram_service,
+                transfers: transfer_manager,
+            };
+
+            app.manage(app_state);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             get_auth_state,
             send_phone_code,
@@ -76,6 +91,7 @@ pub fn run() {
             delete_file_permanent,
             search_files,
             get_storage_stats,
+            sync_telegram_saved_messages,
             start_upload,
             start_download,
             list_transfers,
