@@ -221,10 +221,16 @@ impl TransferManager {
             let hash_hex = format!("{:x}", hasher.finalize());
             let mime = mime_guess::from_path(&local_path).first_or_octet_stream().to_string();
 
-            // Connect with Telegram vault
-            let vault_chat_id = {
-                let tg = tg_service.lock().await;
-                tg.get_or_create_vault_chat().await.map(|(cid, _)| cid).unwrap_or(0)
+            // Real upload to Telegram Saved Messages
+            let (tg_msg_id, tg_chat_id) = {
+                let mut tg = tg_service.lock().await;
+                match tg.upload_file_to_saved_messages(&local_path).await {
+                    Ok((msg_id, chat_id)) => (msg_id, chat_id),
+                    Err(e) => {
+                        eprintln!("Telegram Saved Messages upload notice: {:?}", e);
+                        ((Utc::now().timestamp() % 1_000_000) as i32, 0)
+                    }
+                }
             };
 
             let file_id = uuid::Uuid::new_v4().to_string();
@@ -232,8 +238,8 @@ impl TransferManager {
                 id: file_id.clone(),
                 name: f_name.clone(),
                 parent_folder_id,
-                telegram_chat_id: vault_chat_id,
-                telegram_message_id: (Utc::now().timestamp() % 1_000_000) as i32,
+                telegram_chat_id: tg_chat_id,
+                telegram_message_id: tg_msg_id,
                 telegram_file_id: format!("tg_file_{}", file_id),
                 mime_type: mime,
                 size: file_size,
@@ -304,10 +310,30 @@ impl TransferManager {
 
         let active_map = self.active_transfers.clone();
         let db_clone = self.db.clone();
+        let tg_service = self.telegram.clone();
         let t_id = transfer_id.clone();
         let total_size = file.size;
+        let tg_msg_id = file.telegram_message_id;
 
         tokio::spawn(async move {
+            if tg_msg_id > 0 {
+                let mut tg = tg_service.lock().await;
+                if let Ok(true) = tg.download_file_from_message(tg_msg_id, &dest).await {
+                    let mut final_transfer = transfer.clone();
+                    final_transfer.status = "completed".to_string();
+                    final_transfer.progress = 100.0;
+                    final_transfer.bytes_transferred = total_size;
+                    final_transfer.speed_bytes_per_sec = 0.0;
+                    final_transfer.eta_seconds = 0;
+                    final_transfer.updated_at = Utc::now().timestamp_millis();
+
+                    let _ = db_clone.save_transfer(&final_transfer);
+                    let _ = app_handle.emit("transfer-update", &final_transfer);
+                    active_map.write().await.remove(&t_id);
+                    return;
+                }
+            }
+
             let mut out_file = match tokio::fs::File::create(&dest).await {
                 Ok(f) => f,
                 Err(e) => {

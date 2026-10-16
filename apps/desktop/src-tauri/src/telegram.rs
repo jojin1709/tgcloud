@@ -139,10 +139,34 @@ impl TelegramService {
     }
 
     pub async fn get_or_create_vault_chat(&self) -> Result<(i64, String), AppError> {
-        Ok((12345678, "TGCloud Personal Vault".to_string()))
+        Ok((0, "Saved Messages".to_string()))
     }
 
-    pub async fn delete_message(&self, _chat_id: i64, _message_id: i32) -> Result<(), AppError> {
+    pub async fn upload_file_to_saved_messages(&mut self, path: &std::path::Path) -> Result<(i32, i64), AppError> {
+        let client = self.ensure_client().await?;
+        let uploaded = client.upload_file(path).await?;
+        let input_msg = grammers_client::message::InputMessage::default().file(uploaded);
+        let msg = client.send_message(tl::types::InputPeerSelf {}, input_msg).await?;
+        let me = client.get_me().await?;
+        Ok((msg.id(), me.raw.id()))
+    }
+
+    pub async fn delete_message(&mut self, _chat_id: i64, message_id: i32) -> Result<(), AppError> {
+        if let Ok(client) = self.ensure_client().await {
+            let _ = client.delete_messages(tl::types::InputPeerSelf {}, &[message_id]).await;
+        }
         Ok(())
+    }
+
+    pub async fn download_file_from_message(&mut self, message_id: i32, dest: &std::path::Path) -> Result<bool, AppError> {
+        let client = self.ensure_client().await?;
+        let mut messages = client.get_messages_by_id(tl::types::InputPeerSelf {}, &[message_id]).await?;
+        if let Some(Some(msg)) = messages.pop() {
+            if let Some(media) = msg.media() {
+                client.download_media(&media, dest).await?;
+                return Ok(true);
+            }
+        }
+        Ok(false)
     }
 }

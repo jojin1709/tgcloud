@@ -160,7 +160,7 @@ pub fn restore_file_from_trash(state: State<'_, AppState>, id: String) -> Result
 pub async fn delete_file_permanent(state: State<'_, AppState>, id: String) -> Result<(), AppError> {
     let file = state.db.delete_file_permanent(&id)?;
     // Delete from Telegram storage
-    let tg = state.telegram.lock().await;
+    let mut tg = state.telegram.lock().await;
     let _ = tg.delete_message(file.telegram_chat_id, file.telegram_message_id).await;
     Ok(())
 }
