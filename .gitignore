@@ -1,0 +1,53 @@
+# TGCloud gitignore
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Rust / Cargo
+target/
+Cargo.lock
+
+# Tauri build artifacts
+src-tauri/target/
+
+# Environment and Secrets (CRITICAL: Never commit Telegram sessions or API secrets)
+.env
+.env.*
+.env.local
+**/.env
+**/.env.*
+*.session
+*.session-journal
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+tgcloud_session/
+*.key
+*.pem
+
+# IDEs & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+
+# Flutter / Mobile
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+android/.gradle
+android/app/build/
+android/local.properties
+ios/Pods/

@@ -1,0 +1,7 @@
+/target
+.env
+.env.*
+*.session
+*.session-journal
+*.db
+*.db-journal

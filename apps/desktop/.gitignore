@@ -1,0 +1,9 @@
+# Prevent any env file leakage
+.env
+.env.*
+.env.local
+**/.env
+**/.env.*
+dist/
+dist-ssr/
+node_modules/
