@@ -94,15 +94,15 @@ jobs:
           keytool -genkey -v -keystore release.jks -alias tgcloud -keyalg RSA -keysize 2048 -validity 10000 -storepass tgcloudpass -keypass tgcloudpass -dname "CN=TGCloud, OU=Dev, O=TGCloud, L=City, S=State, C=US"
           
           # Find generated APK
-          RAW_APK=\$(find apps/desktop/src-tauri/gen/android/app/build/outputs/apk/ -name "*.apk" | head -n 1)
-          echo "Found APK: \$RAW_APK"
+          RAW_APK=$(find apps/desktop/src-tauri/gen/android/app/build/outputs/apk/ -name "*.apk" | head -n 1)
+          echo "Found APK: $RAW_APK"
           
-          APKSIGNER=\$(find \${ANDROID_HOME}/build-tools/ -name "apksigner" | sort -V | tail -n 1)
-          echo "Using apksigner at: \$APKSIGNER"
+          APKSIGNER=$(find ${ANDROID_HOME}/build-tools/ -name "apksigner" | sort -V | tail -n 1)
+          echo "Using apksigner at: $APKSIGNER"
           
           mkdir -p android-output
-          if [ -n "\$RAW_APK" ]; then
-            \$APKSIGNER sign --ks release.jks --ks-pass pass:tgcloudpass --key-pass pass:tgcloudpass --out android-output/TGCloud-Android.apk "\$RAW_APK" || cp "\$RAW_APK" android-output/TGCloud-Android.apk
+          if [ -n "$RAW_APK" ]; then
+            $APKSIGNER sign --ks release.jks --ks-pass pass:tgcloudpass --key-pass pass:tgcloudpass --out android-output/TGCloud-Android.apk "$RAW_APK" || cp "$RAW_APK" android-output/TGCloud-Android.apk
           fi
 
       - name: Upload Android APK Artifact
