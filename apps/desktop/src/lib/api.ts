@@ -12,7 +12,13 @@ import {
 } from '@tgcloud/types';
 
 export const isRunningInTauri = (): boolean => {
-  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+  return (
+    typeof window !== 'undefined' &&
+    ('__TAURI_INTERNALS__' in window ||
+      '__TAURI__' in window ||
+      window.location.hostname === 'tauri.localhost' ||
+      window.location.protocol === 'tauri:')
+  );
 };
 
 // Fallback in-memory storage for web browser preview

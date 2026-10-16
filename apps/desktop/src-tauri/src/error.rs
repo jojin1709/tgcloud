@@ -59,3 +59,37 @@ impl From<rusqlite::Error> for AppError {
         Self::db_error(e.to_string())
     }
 }
+
+impl From<grammers_client::InvocationError> for AppError {
+    fn from(e: grammers_client::InvocationError) -> Self {
+        Self::telegram_error(e.to_string())
+    }
+}
+
+impl From<grammers_client::SignInError> for AppError {
+    fn from(e: grammers_client::SignInError) -> Self {
+        match e {
+            grammers_client::SignInError::PasswordRequired(_) => {
+                Self::new("PASSWORD_REQUIRED", "Two-step verification password is required.")
+            }
+            grammers_client::SignInError::InvalidCode => {
+                Self::new("INVALID_CODE", "Invalid verification code.")
+            }
+            grammers_client::SignInError::InvalidPassword(_) => {
+                Self::new("INVALID_PASSWORD", "Invalid 2FA password.")
+            }
+            grammers_client::SignInError::SignUpRequired => {
+                Self::new("SIGNUP_REQUIRED", "Please register your Telegram account first using the official mobile app.")
+            }
+            grammers_client::SignInError::Other(inv) => {
+                Self::telegram_error(inv.to_string())
+            }
+        }
+    }
+}
+
+impl From<grammers_session::storages::SqliteSessionError> for AppError {
+    fn from(e: grammers_session::storages::SqliteSessionError) -> Self {
+        Self::new("SESSION_ERROR", e.to_string())
+    }
+}
