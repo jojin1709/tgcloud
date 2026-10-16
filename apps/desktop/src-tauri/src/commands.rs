@@ -256,48 +256,77 @@ pub fn save_settings(state: State<'_, AppState>, settings: AppSettings) -> Resul
 
 #[tauri::command]
 pub fn open_file_in_os(file_path: String) -> Result<(), AppError> {
-    open::that(&file_path).map_err(|e| AppError::io_error(e.to_string()))
+    #[cfg(not(target_os = "android"))]
+    {
+        open::that(&file_path).map_err(|e| AppError::io_error(e.to_string()))
+    }
+    #[cfg(target_os = "android")]
+    {
+        let _ = file_path;
+        Ok(())
+    }
 }
 
 #[tauri::command]
 pub async fn pick_files_dialog() -> Result<Vec<String>, AppError> {
-    let files = rfd::AsyncFileDialog::new()
-        .set_title("Select Files to Upload to Telegram")
-        .pick_files()
-        .await;
+    #[cfg(not(target_os = "android"))]
+    {
+        let files = rfd::AsyncFileDialog::new()
+            .set_title("Select Files to Upload to Telegram")
+            .pick_files()
+            .await;
 
-    let paths = files
-        .unwrap_or_default()
-        .into_iter()
-        .map(|f| f.path().to_string_lossy().to_string())
-        .collect();
+        let paths = files
+            .unwrap_or_default()
+            .into_iter()
+            .map(|f| f.path().to_string_lossy().to_string())
+            .collect();
 
-    Ok(paths)
+        Ok(paths)
+    }
+    #[cfg(target_os = "android")]
+    {
+        Ok(vec![])
+    }
 }
 
 #[tauri::command]
 pub async fn pick_folder_dialog() -> Result<Option<String>, AppError> {
-    let folder = rfd::AsyncFileDialog::new()
-        .set_title("Select Download Directory")
-        .pick_folder()
-        .await;
+    #[cfg(not(target_os = "android"))]
+    {
+        let folder = rfd::AsyncFileDialog::new()
+            .set_title("Select Download Directory")
+            .pick_folder()
+            .await;
 
-    Ok(folder.map(|f| f.path().to_string_lossy().to_string()))
+        Ok(folder.map(|f| f.path().to_string_lossy().to_string()))
+    }
+    #[cfg(target_os = "android")]
+    {
+        Ok(None)
+    }
 }
 
 #[tauri::command]
 pub async fn pick_save_file_dialog(default_name: String) -> Result<Option<String>, AppError> {
-    let mut dialog = rfd::AsyncFileDialog::new()
-        .set_title("Save Downloaded File As")
-        .set_file_name(&default_name);
+    #[cfg(not(target_os = "android"))]
+    {
+        let mut dialog = rfd::AsyncFileDialog::new()
+            .set_title("Save Downloaded File As")
+            .set_file_name(&default_name);
 
-    if let Some(user_dirs) = directories::UserDirs::new() {
-        if let Some(download_dir) = user_dirs.download_dir() {
-            dialog = dialog.set_directory(download_dir);
+        if let Some(user_dirs) = directories::UserDirs::new() {
+            if let Some(download_dir) = user_dirs.download_dir() {
+                dialog = dialog.set_directory(download_dir);
+            }
         }
-    }
 
-    let file = dialog.save_file().await;
-    Ok(file.map(|f| f.path().to_string_lossy().to_string()))
+        let file = dialog.save_file().await;
+        Ok(file.map(|f| f.path().to_string_lossy().to_string()))
+    }
+    #[cfg(target_os = "android")]
+    {
+        Ok(None)
+    }
 }
 

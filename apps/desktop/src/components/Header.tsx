@@ -49,13 +49,17 @@ export const Header: React.FC<HeaderProps> = ({ onNewFolderClick }) => {
 
   const handleUploadClick = async () => {
     if (isRunningInTauri()) {
-      const selected = await api.pickFiles();
-      if (selected && selected.length > 0) {
-        for (const filePath of selected) {
-          await startUpload(filePath, currentFolderId);
+      try {
+        const selected = await api.pickFiles();
+        if (selected && selected.length > 0) {
+          for (const filePath of selected) {
+            await startUpload(filePath, currentFolderId);
+          }
+          return;
         }
+      } catch (err) {
+        console.warn('Native picker unavailable, falling back to input:', err);
       }
-      return;
     }
     fileInputRef.current?.click();
   };

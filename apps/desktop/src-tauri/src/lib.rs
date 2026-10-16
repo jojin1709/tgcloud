@@ -8,7 +8,6 @@ pub mod commands;
 
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use directories::ProjectDirs;
 use commands::{AppState, *};
 use db::Database;
 use telegram::TelegramService;
@@ -18,10 +17,13 @@ use transfer_manager::TransferManager;
 pub fn run() {
     let _ = dotenvy::dotenv();
 
-    let project_dirs = ProjectDirs::from("com", "tgcloud", "desktop")
-        .expect("Failed to determine application directories");
-    let data_dir = project_dirs.data_dir();
-    std::fs::create_dir_all(data_dir).expect("Failed to create app data directory");
+    let data_dir = directories::ProjectDirs::from("com", "tgcloud", "desktop")
+        .map(|p| p.data_dir().to_path_buf())
+        .or_else(|| {
+            std::env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join(".tgcloud"))
+        })
+        .unwrap_or_else(|| std::path::PathBuf::from("."));
+    let _ = std::fs::create_dir_all(&data_dir);
 
     let db_path = data_dir.join("tgcloud.db");
     let session_path = data_dir.join("tgcloud.session");

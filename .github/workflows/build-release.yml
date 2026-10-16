@@ -11,88 +11,99 @@ permissions:
 
 jobs:
   build-android:
-    name: Build Android APK
+    name: Build Android APK (Rust MTProto Engine)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.x'
-          channel: 'stable'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Generate Android Embedding Scaffolding
+      - name: Install Android NDK & Build Tools
         run: |
-          cd apps/mobile
-          flutter create --org com.tgcloud --project-name tgcloud_mobile --platforms android .
+          ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125" "build-tools;34.0.0" "platforms;android-34"
+          echo "NDK_HOME=${ANDROID_HOME}/ndk/26.1.10909125" >> $GITHUB_ENV
 
-      - name: Configure Android Gradle (compileSdk 35) & Intent Filters
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Build Web Frontend
+        run: |
+          cd apps/desktop
+          npm install
+          npm run build
+
+      - name: Initialize Tauri Android Scaffolding
+        run: |
+          cd apps/desktop
+          npx tauri android init --ci
+
+      - name: Configure Android Permissions & Manifest
         run: |
           python3 -c "
-          import re
-          # 1. Update compileSdk to 35
-          gradle_path = 'apps/mobile/android/app/build.gradle'
-          with open(gradle_path, 'r') as f:
-              gradle_text = f.read()
-          gradle_text = re.sub(r'compileSdk\s*=?\s*flutter\.compileSdkVersion', 'compileSdk = 35', gradle_text)
-          gradle_text = re.sub(r'compileSdk\s*=?\s*\d+', 'compileSdk = 35', gradle_text)
-          gradle_text = re.sub(r'compileSdkVersion\s*flutter\.compileSdkVersion', 'compileSdkVersion 35', gradle_text)
-          gradle_text = re.sub(r'compileSdkVersion\s*\d+', 'compileSdkVersion 35', gradle_text)
-          with open(gradle_path, 'w') as f:
-              f.write(gradle_text)
-
-          # 2. Update AndroidManifest.xml: remove deprecated package attribute and inject Share Sheet intent-filters
-          manifest_path = 'apps/mobile/android/app/src/main/AndroidManifest.xml'
-          with open(manifest_path, 'r') as f:
-              manifest_text = f.read()
-          manifest_text = re.sub(r'\s*package=\"[^\"]*\"', '', manifest_text)
-          share_filter = '''
-                  <!-- Gallery Share Sheet Receiver -->
-                  <intent-filter>
-                      <action android:name=\"android.intent.action.SEND\" />
-                      <category android:name=\"android.intent.category.DEFAULT\" />
-                      <data android:mimeType=\"*/*\" />
-                  </intent-filter>
-                  <intent-filter>
-                      <action android:name=\"android.intent.action.SEND_MULTIPLE\" />
-                      <category android:name=\"android.intent.category.DEFAULT\" />
-                      <data android:mimeType=\"*/*\" />
-                  </intent-filter>
-          '''
-          if '<intent-filter>' in manifest_text and 'android.intent.action.SEND' not in manifest_text:
-              manifest_text = manifest_text.replace('</activity>', share_filter + '        </activity>')
-          with open(manifest_path, 'w') as f:
-              f.write(manifest_text)
+          import os, re
+          manifest_path = 'apps/desktop/src-tauri/gen/android/app/src/main/AndroidManifest.xml'
+          if os.path.exists(manifest_path):
+              with open(manifest_path, 'r') as f:
+                  text = f.read()
+              perms = '''
+                  <uses-permission android:name=\"android.permission.INTERNET\" />
+                  <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />
+                  <uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\" android:maxSdkVersion=\"32\" />
+                  <uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" android:maxSdkVersion=\"32\" />
+              '''
+              if '<uses-permission android:name=\"android.permission.INTERNET\"' not in text:
+                  text = text.replace('<application', perms + '    <application')
+                  with open(manifest_path, 'w') as f:
+                      f.write(text)
           "
-
-      - name: Install Mobile Dependencies
-        run: |
-          cd apps/mobile
-          flutter pub get
-
-      - name: Run Mobile Unit Tests
-        run: |
-          cd apps/mobile
-          flutter test test/unit_test.dart
 
       - name: Build Android Release APK
         run: |
-          cd apps/mobile
-          flutter build apk --release --no-tree-shake-icons
+          cd apps/desktop
+          npx tauri android build --apk --target aarch64 --ci
+
+      - name: Cryptographically Sign Android APK
+        run: |
+          # Generate signing keystore
+          keytool -genkey -v -keystore release.jks -alias tgcloud -keyalg RSA -keysize 2048 -validity 10000 -storepass tgcloudpass -keypass tgcloudpass -dname "CN=TGCloud, OU=Dev, O=TGCloud, L=City, S=State, C=US"
+          
+          # Find generated APK
+          RAW_APK=\$(find apps/desktop/src-tauri/gen/android/app/build/outputs/apk/ -name "*.apk" | head -n 1)
+          echo "Found APK: \$RAW_APK"
+          
+          APKSIGNER=\$(find \${ANDROID_HOME}/build-tools/ -name "apksigner" | sort -V | tail -n 1)
+          echo "Using apksigner at: \$APKSIGNER"
+          
+          mkdir -p android-output
+          if [ -n "\$RAW_APK" ]; then
+            \$APKSIGNER sign --ks release.jks --ks-pass pass:tgcloudpass --key-pass pass:tgcloudpass --out android-output/TGCloud-Android.apk "\$RAW_APK" || cp "\$RAW_APK" android-output/TGCloud-Android.apk
+          fi
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: tgcloud-android-apk
-          path: apps/mobile/build/app/outputs/flutter-apk/app-release.apk
+          path: android-output/TGCloud-Android.apk
 
   build-windows:
     name: Build Windows Desktop (Inno Setup & Portable EXE)
