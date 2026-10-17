@@ -23,9 +23,9 @@ It turns your personal Telegram account into a sovereign, high-speed, unlimited 
 <br/>
 
 <p>
-  <a href="https://github.com/jojin1709/tgcloud/releases/latest"><img src="https://img.shields.io/badge/⬇️_Download_Windows-TGCloud.exe-0078D6?style=for-the-badge&logo=windows&logoColor=white" height="42" alt="Download TGCloud for Windows"></a>
+  <a href="https://github.com/jojin1709/tgcloud/releases/latest"><img src="https://img.shields.io/badge/Download_Windows-TGCloud.exe-0078D6?style=for-the-badge&logo=windows&logoColor=white" height="42" alt="Download TGCloud for Windows"></a>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://github.com/jojin1709/tgcloud/releases/latest"><img src="https://img.shields.io/badge/⬇️_Download_Android-TGCloud.apk-3DDC84?style=for-the-badge&logo=android&logoColor=white" height="42" alt="Download TGCloud for Android"></a>
+  <a href="https://github.com/jojin1709/tgcloud/releases/latest"><img src="https://img.shields.io/badge/Download_Android-TGCloud.apk-3DDC84?style=for-the-badge&logo=android&logoColor=white" height="42" alt="Download TGCloud for Android"></a>
 </p>
 
 <sub>Pre-compiled, fully functional standalone releases. Simply download, launch, and connect with Telegram. No terminal or compilers required.</sub>
@@ -33,7 +33,7 @@ It turns your personal Telegram account into a sovereign, high-speed, unlimited 
 <br/>
 
 <p>
-  <a href="https://jojin1709.github.io/tgcloud/"><img src="https://img.shields.io/badge/🌐_Live_Showcase_&_Docs-jojin1709.github.io%2Ftgcloud-2ca5e0?style=for-the-badge&logo=googlechrome&logoColor=white" height="38" alt="Live Documentation Website"></a>
+  <a href="https://jojin1709.github.io/tgcloud/"><img src="https://img.shields.io/badge/Live_Showcase_&_Docs-jojin1709.github.io%2Ftgcloud-2ca5e0?style=for-the-badge&logo=googlechrome&logoColor=white" height="38" alt="Live Documentation Website"></a>
 </p>
 
 ---
@@ -154,32 +154,32 @@ TGCloud is distributed as ready-to-run standalone packages for Windows and Andro
 ## TGCloud in Action
 
 ```text
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│  TGCloud                    Search files & folders... (Ctrl+K)           [User Profile]│
-├─────────────────┬──────────────────────────────────────────────────────────────────────┤
-│                 │  My Files > Work > Q4 Releases                                       │
-│  📁 My Files    │                                                                      │
-│  🕒 Recent      │  [📁 Documents]  [📁 Media]  [📁 Archives]  [📁 Code Projects]       │
-│  ⭐ Starred     │                                                                      │
-│  🗑️ Trash        │  Files (32 items)                                                    │
-│                 │  ──────────────────────────────────────────────────────────────────  │
-│                 │  📄 financial_summary_2026.pdf       12.4 MB   Just now    [•••]     │
-│                 │  📦 release_v2.0_windows.zip        184.2 MB   15 min ago  [•••]     │
-│  ⚡ Storage      │  🎬 product_walkthrough.mp4         420.5 MB   2 hours ago [•••]     │
-│  Telegram DC 2  │                                                                      │
-│  Unlimited      │  Active Transfers (2)                                                │
-│  Vault: Synced  │  ↑ Uploading: database_dump.sql.gz  [████████░░] 78%  18.4 MB/s 12s  │
-│                 │  ↓ Downloading: raw_dataset.tar     [████░░░░░░] 41%  32.1 MB/s 45s  │
-└─────────────────┴──────────────────────────────────────────────────────────────────────┘
++----------------------------------------------------------------------------------------+
+|  TGCloud                    Search files & folders... (Ctrl+F)           [User Profile]|
++-----------------+----------------------------------------------------------------------+
+|                 |  My Files > Work > Q4 Releases                                       |
+|  [Files]        |                                                                      |
+|  [Recent]       |  [Documents]  [Media]  [Archives]  [Code Projects]                   |
+|  [Starred]      |                                                                      |
+|  [Trash]        |  Files (32 items)                                                    |
+|                 |  ------------------------------------------------------------------  |
+|                 |  [Doc] financial_summary_2026.pdf    12.4 MB   Just now    [...]     |
+|                 |  [Zip] release_v2.0_windows.zip     184.2 MB   15 min ago  [...]     |
+|  [Storage]      |  [Vid] product_walkthrough.mp4      420.5 MB   2 hours ago [...]     |
+|  Telegram DC 2  |                                                                      |
+|  Unlimited      |  Active Transfers (2)                                                |
+|  Vault: Synced  |  ^ Uploading: database_dump.sql.gz  [========..] 78%  18.4 MB/s 12s  |
+|                 |  v Downloading: raw_dataset.tar     [====......] 41%  32.1 MB/s 45s  |
++-----------------+----------------------------------------------------------------------+
 ```
 
 ### Supported Media Preview & Inspection Matrix
 
 | Category | File Extensions | In-App Preview Engine | Telemetry & Metadata |
 | :--- | :--- | :--- | :--- |
-| **Documents** | `.pdf`, `.txt`, `.md`, `.json`, `.csv`, `.log` | Embedded Viewer / Syntax Renderer | Page count, MIME, Byte size |
+| **Documents** | `.pdf`, `.txt`, `.md`, `.json`, `.csv`, `.log`, `.rs`, `.ts`, `.py` | Streaming Preview & Syntax Highlighter | Page count, MIME, Byte size |
 | **Images** | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg` | High-DPI Canvas & Lightbox | Dimensions, Resolution, Aspect Ratio |
-| **Audio** | `.mp3`, `.wav`, `.ogg`, `.flac`, `.m4a` | HTML5 Audio Streamer with Waveform | Duration, Bitrate, Playback Scrub |
+| **Audio** | `.mp3`, `.wav`, `.ogg`, `.flac`, `.m4a` | HTML5 Audio Streamer with Waveform Visualizer | Duration, Bitrate, Playback Scrub |
 | **Video** | `.mp4`, `.webm`, `.mkv`, `.mov` | Hardware-Accelerated Video Player | Resolution, FPS, Duration, Audio track |
 | **Archives** | `.zip`, `.tar`, `.gz`, `.7z`, `.rar` | Archive Inspector & Hash Validator | Compressed ratio, Member list |
 
@@ -187,14 +187,21 @@ TGCloud is distributed as ready-to-run standalone packages for Windows and Andro
 
 ## Key Capabilities
 
-- **No exploit, no report — No mock, no fake data**: Reports only real, verifiable file transfers and live Telegram storage records.
+- **Direct MTProto Execution - No mock or placeholder data**: Performs real chunked transfers directly with official Telegram datacenters.
+- **Client-Side Zero-Knowledge Encryption**: Optional AES-256-GCM encryption with 5,000 PBKDF2 rounds using your private master passphrase before uploading to Telegram.
+- **Local Folder Auto-Sync Daemon**: Background directory monitor (`~/TGCloud`) using the Rust `notify` crate to sync changes automatically.
+- **Multi-Select, Marquee Bounding Box & Batch Actions**: Click-and-drag marquee box selection across canvas, Shift/Ctrl range select, floating batch action bar, and single ZIP archive packaging via `jszip`.
+- **Desktop Keyboard Shortcuts**: `Ctrl+A` (Select All), `Delete` (Trash), `Space` (Instant Preview), `Escape` (Deselect/Dismiss), and `Ctrl+F` (Search).
+- **Native-Style Right-Click Context Menu**: Full action menus for files, folders, and empty canvas background.
+- **In-App Drag-and-Drop Organization**: Drag files and drop them directly onto folders inside the file browser to move them.
+- **Storage Analytics & Optimization Tools**: Visual category breakdown bar, Large File Inspector (> 25 MB), and Duplicate File Cleaner with 1-click deduplication.
+- **Custom Telegram Vault Selector**: Switch between default Saved Messages and dedicated Telegram Channels / Groups with custom chat ID and friendly name.
+- **System Tray Background Mode**: Minimize-to-tray with continuous background transfer progress and quick show/hide actions.
 - **Dedicated Private Storage Vault**: Automatically provisions and binds a private storage channel (`TGCloud Storage Vault`), isolating your cloud drive from regular personal messages.
-- **Full File Manager Hierarchy**: Virtual folders, nested subfolders, batch move, rename, star, trash bin, and permanent purge.
-- **Real-Time Transfer Manager**: Dedicated transfers screen tracking active uploads and downloads with real sliding-window speeds (MB/s), elapsed time, remaining bytes, and ETAs.
 - **Sub-Millisecond Search**: Local SQLite WAL full-text search with instant category filters and multi-column sorting.
 - **Resumable Transfers**: Seeks byte offsets across 512 KB chunks to pause and resume interrupted transfers without re-transmitting data.
 - **Android Share Sheet Integration**: Share photos, videos, or documents directly from the Android Gallery or Files app into TGCloud with one tap.
-- **Zero-Knowledge Security**: Telegram Two-Step Verification (2FA) cloud passwords are authenticated ephemerally in-memory and never written to disk.
+- **In-App Auto-Updater**: Automatic update checks against GitHub Releases with direct binary download options.
 
 ---
 
