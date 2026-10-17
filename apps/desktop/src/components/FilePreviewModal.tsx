@@ -3,6 +3,7 @@ import { X, Download, File, Calendar, HardDrive, Hash, Shield } from 'lucide-rea
 import { TGFile } from '@tgcloud/types';
 import { formatBytes, formatDate, getFileCategory } from '../lib/utils';
 import { useTransfers } from '../context/TransfersContext';
+import { api, isRunningInTauri } from '../lib/api';
 
 interface FilePreviewModalProps {
   file: TGFile | null;
@@ -15,9 +16,19 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
 
   const category = getFileCategory(file.mimeType, file.name);
 
-  const handleDownload = () => {
-    const dest = `C:\\Users\\User\\Downloads\\${file.name}`;
-    startDownload(file.id, dest);
+  const handleDownload = async () => {
+    if (isRunningInTauri()) {
+      try {
+        const savePath = await api.pickSaveFile(file.name);
+        if (savePath) {
+          await startDownload(file.id, savePath);
+          return;
+        }
+      } catch (e) {
+        console.warn('Native picker unavailable, falling back:', e);
+      }
+    }
+    await startDownload(file.id, file.name);
   };
 
   const isImage = category === 'images';
