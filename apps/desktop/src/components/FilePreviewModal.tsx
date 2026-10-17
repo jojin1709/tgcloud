@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Download, File, Calendar, HardDrive, Hash, Shield, Play, Pause, Copy, Check, FileCode, Music } from 'lucide-react';
 import { TGFile } from '@tgcloud/types';
 import { formatBytes, formatDate, getFileCategory } from '../lib/utils';
@@ -40,6 +40,35 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
 
   const [copied, setCopied] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(file.thumbnailPath || null);
+  const [loadingPreview, setLoadingPreview] = useState<boolean>(false);
+
+  useEffect(() => {
+    let active = true;
+    let createdUrl: string | null = null;
+
+    if (file && (isImage || isPdf || isAudio || isVideo)) {
+      setLoadingPreview(true);
+      api.getFilePreviewBytes(file.id)
+        .then((bytes) => {
+          if (active && bytes && bytes.length > 0) {
+            const blob = new Blob([bytes.buffer as ArrayBuffer], { type: file.mimeType || 'application/octet-stream' });
+            createdUrl = URL.createObjectURL(blob);
+            setPreviewBlobUrl(createdUrl);
+          }
+        })
+        .finally(() => {
+          if (active) setLoadingPreview(false);
+        });
+    }
+
+    return () => {
+      active = false;
+      if (createdUrl) {
+        URL.revokeObjectURL(createdUrl);
+      }
+    };
+  }, [file.id, isImage, isPdf, isAudio, isVideo, file.mimeType]);
 
   const handleCopySample = () => {
     navigator.clipboard.writeText(`// TGCloud Vault File: ${file.name}\n// Size: ${formatBytes(file.size)}\n// File ID: ${file.id}`);
@@ -85,13 +114,20 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
 
         {/* Preview Area */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col items-center justify-center bg-tg-dark-bg/40 min-h-[320px]">
+          {loadingPreview && (
+            <div className="flex flex-col items-center justify-center py-6 gap-2 text-tg-dark-muted mb-4">
+              <div className="w-8 h-8 border-2 border-tg-blue-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs">Streaming preview from Telegram Cloud...</span>
+            </div>
+          )}
+
           {isImage ? (
             <div className="flex flex-col items-center justify-center">
-              {file.thumbnailPath ? (
+              {previewBlobUrl ? (
                 <img
-                  src={file.thumbnailPath}
+                  src={previewBlobUrl}
                   alt={file.name}
-                  className="max-h-[50vh] max-w-full rounded-xl object-contain shadow-lg"
+                  className="max-h-[52vh] max-w-full rounded-xl object-contain shadow-2xl border border-tg-dark-border"
                 />
               ) : (
                 <div className="text-center p-8 border border-tg-dark-border rounded-xl bg-tg-dark-surface">
@@ -141,6 +177,10 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                 <p className="text-xs text-tg-dark-muted mt-0.5">High-Fidelity Audio • {formatBytes(file.size)}</p>
               </div>
 
+              {previewBlobUrl && (
+                <audio src={previewBlobUrl} autoPlay={isPlaying} />
+              )}
+
               {/* Animated Waveform Visualizer */}
               <div className="flex items-center justify-center gap-1 h-12 px-4 py-2 bg-tg-dark-bg/60 rounded-xl border border-tg-dark-border/60">
                 {[18, 32, 24, 45, 28, 40, 20, 36, 48, 22, 38, 26, 44, 30, 24, 42, 16, 34].map((h, i) => (
@@ -163,35 +203,52 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
               </div>
             </div>
           ) : isPdf ? (
-            <div className="w-full max-w-md p-6 bg-tg-dark-surface border border-tg-dark-border rounded-2xl text-center space-y-3">
-              <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
-                <File className="w-8 h-8" />
-              </div>
-              <h4 className="font-semibold text-white truncate text-base">{file.name}</h4>
-              <p className="text-xs text-tg-dark-muted">PDF Document • {formatBytes(file.size)}</p>
-              <div className="p-3 bg-tg-dark-bg/60 border border-tg-dark-border rounded-xl text-xs text-tg-dark-muted">
-                PDF pagination canvas ready. Download to open in your system reader.
-              </div>
-              <button
-                onClick={handleDownload}
-                className="w-full py-2.5 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-xs font-semibold shadow-md shadow-tg-blue-500/20 transition-all"
-              >
-                Open & Download PDF
-              </button>
+            <div className="w-full h-full max-h-[55vh] flex flex-col rounded-xl overflow-hidden">
+              {previewBlobUrl ? (
+                <iframe
+                  src={previewBlobUrl}
+                  title={file.name}
+                  className="w-full h-[52vh] rounded-xl border border-tg-dark-border bg-slate-900"
+                />
+              ) : (
+                <div className="w-full max-w-md p-6 bg-tg-dark-surface border border-tg-dark-border rounded-2xl text-center space-y-3 mx-auto">
+                  <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+                    <File className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-semibold text-white truncate text-base">{file.name}</h4>
+                  <p className="text-xs text-tg-dark-muted">PDF Document • {formatBytes(file.size)}</p>
+                  <button
+                    onClick={handleDownload}
+                    className="w-full py-2.5 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-xs font-semibold shadow-md shadow-tg-blue-500/20 transition-all cursor-pointer"
+                  >
+                    Download to Open Locally
+                  </button>
+                </div>
+              )}
             </div>
           ) : isVideo ? (
-            <div className="w-full max-w-lg p-6 bg-tg-dark-surface border border-tg-dark-border rounded-2xl text-center">
-              <div className="w-16 h-16 rounded-full bg-rose-400/10 text-rose-400 flex items-center justify-center mx-auto mb-3">
-                <File className="w-8 h-8" />
-              </div>
-              <h4 className="font-semibold text-white truncate">{file.name}</h4>
-              <p className="text-xs text-tg-dark-muted mt-1 mb-4">Video format • {formatBytes(file.size)}</p>
-              <button
-                onClick={handleDownload}
-                className="px-4 py-2 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-xs font-semibold cursor-pointer"
-              >
-                Download to Play Locally
-              </button>
+            <div className="w-full max-w-lg p-4 bg-tg-dark-surface border border-tg-dark-border rounded-2xl text-center">
+              {previewBlobUrl ? (
+                <video
+                  src={previewBlobUrl}
+                  controls
+                  className="max-h-[50vh] max-w-full rounded-xl shadow-2xl border border-tg-dark-border mx-auto"
+                />
+              ) : (
+                <>
+                  <div className="w-16 h-16 rounded-full bg-rose-400/10 text-rose-400 flex items-center justify-center mx-auto mb-3">
+                    <File className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-semibold text-white truncate">{file.name}</h4>
+                  <p className="text-xs text-tg-dark-muted mt-1 mb-4">Video format • {formatBytes(file.size)}</p>
+                  <button
+                    onClick={handleDownload}
+                    className="px-4 py-2 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-xs font-semibold cursor-pointer"
+                  >
+                    Download to Play Locally
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <div className="text-center p-8 max-w-md">

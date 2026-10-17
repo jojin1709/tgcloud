@@ -470,3 +470,41 @@ pub async fn start_folder_watcher(
     Ok(sync_dir_str)
 }
 
+#[tauri::command]
+pub async fn get_file_preview_bytes(
+    app_handle: AppHandle,
+    state: State<'_, AppState>,
+    file_id: String,
+) -> Result<Option<Vec<u8>>, AppError> {
+    use tauri::Manager;
+    let file = match state.db.get_file(&file_id)? {
+        Some(f) => f,
+        None => return Ok(None),
+    };
+
+    let base_cache = app_handle
+        .path()
+        .app_cache_dir()
+        .unwrap_or_else(|_| std::env::temp_dir());
+    let previews_dir = base_cache.join("tgcloud_previews");
+    let _ = std::fs::create_dir_all(&previews_dir);
+    let preview_path = previews_dir.join(format!("{}_{}", file.telegram_message_id, file.name));
+
+    if preview_path.exists() {
+        if let Ok(bytes) = std::fs::read(&preview_path) {
+            return Ok(Some(bytes));
+        }
+    }
+
+    // Attempt to download directly from Telegram Saved Messages
+    let mut tg = state.telegram.lock().await;
+    if let Ok(true) = tg.download_file_from_message(file.telegram_message_id, &preview_path).await {
+        if let Ok(bytes) = std::fs::read(&preview_path) {
+            return Ok(Some(bytes));
+        }
+    }
+
+    Ok(None)
+}
+
+

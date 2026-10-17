@@ -642,6 +642,20 @@ export const api = {
     }
   },
 
+  async getFilePreviewBytes(fileId: string): Promise<Uint8Array | null> {
+    if (isRunningInTauri()) {
+      try {
+        const bytes = await invoke<number[] | null>('get_file_preview_bytes', { fileId });
+        if (bytes) {
+          return new Uint8Array(bytes);
+        }
+      } catch (e) {
+        console.warn('Failed to load file preview bytes:', e);
+      }
+    }
+    return null;
+  },
+
 
   // Event listener
   onTransferUpdate(callback: (transfer: TGTransfer) => void): () => void {

@@ -167,7 +167,8 @@ pub fn run() {
             decrypt_file,
             get_sync_folder,
             set_sync_folder,
-            start_folder_watcher
+            start_folder_watcher,
+            get_file_preview_bytes
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
