@@ -93,6 +93,7 @@ pub fn run() {
             get_storage_stats,
             sync_telegram_saved_messages,
             start_upload,
+            upload_file_bytes,
             start_download,
             list_transfers,
             pause_transfer,

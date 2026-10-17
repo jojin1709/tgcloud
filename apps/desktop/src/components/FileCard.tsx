@@ -63,28 +63,32 @@ export const FileCard: React.FC<FileCardProps> = ({
   return (
     <div
       onDoubleClick={() => onPreview(file)}
-      className="group relative p-3 sm:p-3.5 rounded-2xl bg-tg-dark-surface border border-tg-dark-border hover:border-tg-blue-500/40 hover:bg-tg-dark-surfaceHover/80 transition-all duration-200 card-hover flex flex-col justify-between"
+      onClick={() => onPreview(file)}
+      className="group relative p-3 sm:p-3.5 rounded-2xl bg-tg-dark-surface border border-tg-dark-border hover:border-tg-blue-500/40 hover:bg-tg-dark-surfaceHover/80 transition-all duration-200 card-hover flex flex-col justify-between cursor-pointer active:scale-[0.99]"
     >
       <div>
         {/* Card Top: Category Icon & Actions */}
         <div className="flex items-start justify-between">
           <div
-            onClick={() => onPreview(file)}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-tg-dark-bg/80 border border-tg-dark-border flex items-center justify-center group-hover:scale-105 transition-all cursor-pointer shrink-0"
+            className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-tg-dark-bg/80 border border-tg-dark-border flex items-center justify-center group-hover:scale-105 transition-all shrink-0"
           >
             {getIcon()}
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 sm:gap-1">
             {!isTrashView && (
               <button
-                onClick={() => onToggleStar(file.id)}
-                className={`p-1.5 rounded-lg transition-colors ${
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleStar(file.id);
+                }}
+                className={`p-2 sm:p-1.5 rounded-xl transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${
                   file.isStarred
                     ? 'text-amber-400 hover:text-amber-300'
                     : 'text-tg-dark-muted/40 hover:text-tg-dark-muted group-hover:text-tg-dark-muted'
                 }`}
                 title={file.isStarred ? 'Unstar' : 'Star file'}
+                aria-label="Star file"
               >
                 <Star className={`w-4 h-4 ${file.isStarred ? 'fill-current' : ''}`} />
               </button>
@@ -96,7 +100,8 @@ export const FileCard: React.FC<FileCardProps> = ({
                   e.stopPropagation();
                   setMenuOpen(!menuOpen);
                 }}
-                className="p-1.5 rounded-lg text-tg-dark-muted hover:text-white hover:bg-tg-dark-bg transition-colors"
+                className="p-2 sm:p-1.5 rounded-xl text-tg-dark-muted hover:text-white hover:bg-tg-dark-bg transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                aria-label="More actions"
               >
                 <MoreVertical className="w-4 h-4" />
               </button>
@@ -104,13 +109,13 @@ export const FileCard: React.FC<FileCardProps> = ({
               {menuOpen && (
                 <>
                   <div
-                    className="fixed inset-0 z-10"
+                    className="fixed inset-0 z-20"
                     onClick={(e) => {
                       e.stopPropagation();
                       setMenuOpen(false);
                     }}
                   />
-                  <div className="absolute right-0 top-7 w-40 py-1 bg-tg-dark-bg border border-tg-dark-border rounded-xl shadow-xl z-20 text-xs">
+                  <div className="absolute right-0 top-9 w-44 py-1.5 bg-tg-dark-surface border border-tg-dark-border rounded-2xl shadow-2xl z-30 text-xs">
                     {!isTrashView ? (
                       <>
                         <button
@@ -215,9 +220,13 @@ export const FileCard: React.FC<FileCardProps> = ({
         </span>
         {!isTrashView && (
           <button
-            onClick={() => onDownload(file)}
-            className="text-tg-dark-muted hover:text-white p-1 rounded-md hover:bg-tg-dark-surfaceHover transition-colors shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDownload(file);
+            }}
+            className="text-tg-dark-muted hover:text-white p-2 sm:p-1.5 rounded-xl hover:bg-tg-dark-surfaceHover transition-colors shrink-0 min-w-[34px] min-h-[34px] flex items-center justify-center active:scale-95"
             title="Download file"
+            aria-label="Download file"
           >
             <Download className="w-3.5 h-3.5" />
           </button>

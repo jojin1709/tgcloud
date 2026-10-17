@@ -7,7 +7,7 @@ interface TransfersContextType {
   activeCount: number;
   isTransfersOpen: boolean;
   setIsTransfersOpen: (open: boolean) => void;
-  startUpload: (filePath: string, parentFolderId?: string | null) => Promise<string>;
+  startUpload: (fileOrPath: string | File, parentFolderId?: string | null) => Promise<string>;
   startDownload: (fileId: string, destinationPath: string) => Promise<string>;
   pauseTransfer: (id: string) => Promise<void>;
   resumeTransfer: (id: string) => Promise<void>;
@@ -56,8 +56,8 @@ export const TransfersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     (t) => t.status === 'active' || t.status === 'queued'
   ).length;
 
-  const startUpload = async (filePath: string, parentFolderId: string | null = null) => {
-    const id = await api.startUpload(filePath, parentFolderId);
+  const startUpload = async (fileOrPath: string | File, parentFolderId: string | null = null) => {
+    const id = await api.startUpload(fileOrPath, parentFolderId);
     await refreshTransfers();
     return id;
   };

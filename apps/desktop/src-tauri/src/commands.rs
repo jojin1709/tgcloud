@@ -229,6 +229,21 @@ pub async fn start_upload(
 }
 
 #[tauri::command]
+pub async fn upload_file_bytes(
+    app_handle: AppHandle,
+    state: State<'_, AppState>,
+    file_name: String,
+    data: Vec<u8>,
+    parent_folder_id: Option<String>,
+) -> Result<String, AppError> {
+    let temp_dir = std::env::temp_dir().join("tgcloud_uploads");
+    let _ = std::fs::create_dir_all(&temp_dir);
+    let temp_path = temp_dir.join(&file_name);
+    std::fs::write(&temp_path, data)?;
+    state.transfers.start_upload(app_handle, temp_path.to_string_lossy().to_string(), parent_folder_id).await
+}
+
+#[tauri::command]
 pub async fn start_download(
     app_handle: AppHandle,
     state: State<'_, AppState>,

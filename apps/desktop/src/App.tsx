@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { FilesProvider, useFiles } from './context/FilesContext';
 import { TransfersProvider } from './context/TransfersContext';
@@ -11,16 +11,22 @@ import { SettingsModal, applyAppTheme } from './components/SettingsModal';
 import { NewFolderDialog } from './components/NewFolderDialog';
 import { RenameDialog } from './components/RenameDialog';
 import { LoginModal } from './components/LoginModal';
+import { MobileActionSheet } from './components/MobileActionSheet';
+import { Plus } from 'lucide-react';
 import { TGFile } from '@tgcloud/types';
 import { api } from './lib/api';
 
 const MainLayout: React.FC = () => {
   const { authState, loading } = useAuth();
-  const { renameFile, renameFolder } = useFiles();
+  const { renameFile, renameFolder, refreshFiles } = useFiles();
 
   const [previewFile, setPreviewFile] = useState<TGFile | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
+  const [isMobileActionSheetOpen, setIsMobileActionSheetOpen] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
 
   // Rename Dialog State
   const [renameState, setRenameState] = useState<{
@@ -96,6 +102,8 @@ const MainLayout: React.FC = () => {
         <Header
           onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
           onNewFolderClick={() => setIsNewFolderOpen(true)}
+          fileInputRef={fileInputRef}
+          mediaInputRef={mediaInputRef}
         />
         <FileBrowser
           onPreviewFile={(file) => setPreviewFile(file)}
@@ -108,6 +116,25 @@ const MainLayout: React.FC = () => {
           onNewFolder={() => setIsNewFolderOpen(true)}
         />
       </div>
+
+      {/* Mobile Floating Action Button (FAB) */}
+      <button
+        onClick={() => setIsMobileActionSheetOpen(true)}
+        className="sm:hidden fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-tr from-tg-blue-600 to-tg-blue-400 text-white shadow-xl shadow-tg-blue-500/40 flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
+        aria-label="Add or upload to Telegram"
+      >
+        <Plus className="w-6 h-6 stroke-[2.5]" />
+      </button>
+
+      {/* Mobile Action Sheet Modal */}
+      <MobileActionSheet
+        isOpen={isMobileActionSheetOpen}
+        onClose={() => setIsMobileActionSheetOpen(false)}
+        onUploadFiles={() => fileInputRef.current?.click()}
+        onUploadMedia={() => mediaInputRef.current?.click()}
+        onNewFolder={() => setIsNewFolderOpen(true)}
+        onSyncTelegram={() => refreshFiles()}
+      />
 
       {/* Modals & Dialogs */}
       <FilePreviewModal file={previewFile} onClose={() => setPreviewFile(null)} />

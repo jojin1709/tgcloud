@@ -21,12 +21,37 @@ export const isRunningInTauri = (): boolean => {
   );
 };
 
+// In-browser mock event bus
+const webFileListeners: Array<() => void> = [];
+const webTransferListeners: Array<(transfer: TGTransfer) => void> = [];
+
+export const triggerWebFilesChanged = () => {
+  webFileListeners.forEach((cb) => {
+    try {
+      cb();
+    } catch (e) {
+      console.error(e);
+    }
+  });
+};
+
+export const triggerWebTransferUpdate = (t: TGTransfer) => {
+  webTransferListeners.forEach((cb) => {
+    try {
+      cb(t);
+    } catch (e) {
+      console.error(e);
+    }
+  });
+};
+
 // Fallback in-memory storage for web browser preview
 class WebMockStorage {
   private user: TGUser | null = null;
   private folders: TGFolder[] = [];
   private files: TGFile[] = [];
   private transfers: TGTransfer[] = [];
+  private blobs: Map<string, Blob> = new Map();
   private settings: AppSettings = {
     concurrentUploads: 3,
     concurrentDownloads: 3,
@@ -38,7 +63,46 @@ class WebMockStorage {
   };
 
   constructor() {
-    this.initDefaultMockData();
+    this.loadFromStorage();
+  }
+
+  private saveToStorage() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('tgcloud_web_files', JSON.stringify(this.files));
+        localStorage.setItem('tgcloud_web_folders', JSON.stringify(this.folders));
+      }
+    } catch (e) {
+      console.warn('Failed to save to localStorage:', e);
+    }
+  }
+
+  private loadFromStorage() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const savedFiles = localStorage.getItem('tgcloud_web_files');
+        const savedFolders = localStorage.getItem('tgcloud_web_folders');
+        if (savedFiles) this.files = JSON.parse(savedFiles);
+        if (savedFolders) this.folders = JSON.parse(savedFolders);
+      }
+    } catch (e) {
+      console.warn('Failed to load from localStorage:', e);
+    }
+    if (this.folders.length === 0) {
+      this.initDefaultMockData();
+    }
+  }
+
+  storeBlob(fileId: string, blob: Blob) {
+    this.blobs.set(fileId, blob);
+  }
+
+  getBlob(fileId: string): Blob | undefined {
+    return this.blobs.get(fileId);
+  }
+
+  getFile(fileId: string): TGFile | undefined {
+    return this.files.find((f) => f.id === fileId);
   }
 
   private initDefaultMockData() {
@@ -82,7 +146,7 @@ class WebMockStorage {
 
   createFolder(name: string, parentId: string | null): TGFolder {
     const newFolder: TGFolder = {
-      id: `f-${Date.now()}`,
+      id: `f-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       name,
       parentId,
       createdAt: Date.now(),
@@ -91,6 +155,8 @@ class WebMockStorage {
       totalSize: 0,
     };
     this.folders.push(newFolder);
+    this.saveToStorage();
+    triggerWebFilesChanged();
     return newFolder;
   }
 
@@ -99,11 +165,15 @@ class WebMockStorage {
     if (f) {
       f.name = newName;
       f.modifiedAt = Date.now();
+      this.saveToStorage();
+      triggerWebFilesChanged();
     }
   }
 
   deleteFolder(id: string) {
     this.folders = this.folders.filter((x) => x.id !== id);
+    this.saveToStorage();
+    triggerWebFilesChanged();
   }
 
   listFiles(folderId: string | null, starredOnly?: boolean, trashOnly?: boolean): TGFile[] {
@@ -115,7 +185,9 @@ class WebMockStorage {
   }
 
   insertFile(file: TGFile) {
-    this.files.push(file);
+    this.files.unshift(file);
+    this.saveToStorage();
+    triggerWebFilesChanged();
   }
 
   renameFile(id: string, newName: string) {
@@ -123,6 +195,8 @@ class WebMockStorage {
     if (f) {
       f.name = newName;
       f.modifiedAt = Date.now();
+      this.saveToStorage();
+      triggerWebFilesChanged();
     }
   }
 
@@ -131,6 +205,8 @@ class WebMockStorage {
     if (f) {
       f.parentFolderId = newParentId;
       f.modifiedAt = Date.now();
+      this.saveToStorage();
+      triggerWebFilesChanged();
     }
   }
 
@@ -138,6 +214,8 @@ class WebMockStorage {
     const f = this.files.find((x) => x.id === id);
     if (f) {
       f.isStarred = !f.isStarred;
+      this.saveToStorage();
+      triggerWebFilesChanged();
       return f.isStarred;
     }
     return false;
@@ -145,11 +223,18 @@ class WebMockStorage {
 
   setTrash(id: string, isTrash: boolean) {
     const f = this.files.find((x) => x.id === id);
-    if (f) f.isTrash = isTrash;
+    if (f) {
+      f.isTrash = isTrash;
+      this.saveToStorage();
+      triggerWebFilesChanged();
+    }
   }
 
   deletePermanent(id: string) {
     this.files = this.files.filter((x) => x.id !== id);
+    this.blobs.delete(id);
+    this.saveToStorage();
+    triggerWebFilesChanged();
   }
 
   searchFiles(query: SearchQuery): TGFile[] {
@@ -357,38 +442,69 @@ export const api = {
   },
 
   // Transfers
-  async startUpload(filePath: string, parentFolderId: string | null = null): Promise<string> {
+  async startUpload(fileOrPath: string | File, parentFolderId: string | null = null): Promise<string> {
     if (isRunningInTauri()) {
-      return await invoke<string>('start_upload', { filePath, parentFolderId });
+      if (typeof fileOrPath === 'string') {
+        return await invoke<string>('start_upload', { filePath: fileOrPath, parentFolderId });
+      }
+      if ((fileOrPath as any).path) {
+        return await invoke<string>('start_upload', { filePath: (fileOrPath as any).path, parentFolderId });
+      }
+      // Mobile / Android WebView fallback: transfer bytes directly
+      const buffer = await fileOrPath.arrayBuffer();
+      const data = Array.from(new Uint8Array(buffer));
+      return await invoke<string>('upload_file_bytes', {
+        fileName: fileOrPath.name,
+        data,
+        parentFolderId,
+      });
     }
+
     const transferId = `up-${Date.now()}`;
-    const filename = filePath.split(/[/\\]/).pop() || 'uploaded_file';
-    mock.addTransfer({
+    const fileId = `f-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const isFileObj = typeof fileOrPath !== 'string';
+    const filename = isFileObj ? fileOrPath.name : fileOrPath.split(/[/\\]/).pop() || 'uploaded_file';
+    const fileSize = isFileObj ? fileOrPath.size : 1024 * 1024 * 5;
+    const mimeType = isFileObj ? (fileOrPath.type || 'application/octet-stream') : 'application/octet-stream';
+
+    if (isFileObj) {
+      mock.storeBlob(fileId, fileOrPath);
+    }
+
+    const transfer: TGTransfer = {
       id: transferId,
+      fileId,
       fileName: filename,
       type: 'upload',
       status: 'completed',
       progress: 100,
-      bytesTotal: 1024 * 1024 * 15,
-      bytesTransferred: 1024 * 1024 * 15,
-      speedBytesPerSec: 0,
+      bytesTotal: fileSize,
+      bytesTransferred: fileSize,
+      speedBytesPerSec: 1024 * 1024 * 2,
       etaSeconds: 0,
       createdAt: Date.now(),
       updatedAt: Date.now(),
-    });
+    };
+    mock.addTransfer(transfer);
+
     mock.insertFile({
-      id: `f-${Date.now()}`,
+      id: fileId,
       name: filename,
       parentFolderId,
       telegramChatId: 998877,
       telegramMessageId: Math.floor(Math.random() * 10000),
       telegramFileId: `tg_${Date.now()}`,
-      mimeType: 'application/octet-stream',
-      size: 1024 * 1024 * 15,
+      mimeType,
+      size: fileSize,
       createdAt: Date.now(),
       modifiedAt: Date.now(),
       status: 'synced',
+      isStarred: false,
+      isTrash: false,
     });
+
+    triggerWebTransferUpdate(transfer);
+    triggerWebFilesChanged();
     return transferId;
   },
 
@@ -396,6 +512,19 @@ export const api = {
     if (isRunningInTauri()) {
       return await invoke<string>('start_download', { fileId, destinationPath });
     }
+    const file = mock.getFile(fileId);
+    const filename = file?.name || destinationPath || 'downloaded_file';
+    const blob = mock.getBlob(fileId) || new Blob([`TGCloud Vault file content for: ${filename}`], {
+      type: file?.mimeType || 'application/octet-stream',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
     return `dl-${Date.now()}`;
   },
 
@@ -487,7 +616,11 @@ export const api = {
         if (unlistenFn) unlistenFn();
       };
     }
-    return () => {};
+    webTransferListeners.push(callback);
+    return () => {
+      const idx = webTransferListeners.indexOf(callback);
+      if (idx >= 0) webTransferListeners.splice(idx, 1);
+    };
   },
 
   onFilesChanged(callback: () => void): () => void {
@@ -503,6 +636,10 @@ export const api = {
         if (unlistenFn) unlistenFn();
       };
     }
-    return () => {};
+    webFileListeners.push(callback);
+    return () => {
+      const idx = webFileListeners.indexOf(callback);
+      if (idx >= 0) webFileListeners.splice(idx, 1);
+    };
   },
 };

@@ -43,6 +43,9 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     restoreFromTrash,
     deletePermanent,
     currentFolderId,
+    categoryFilter,
+    setCategoryFilter,
+    refreshFiles,
   } = useFiles();
 
   const { startDownload, startUpload } = useTransfers();
@@ -61,10 +64,15 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 
   const handleDownload = async (file: TGFile) => {
     if (isRunningInTauri()) {
-      const savePath = await api.pickSaveFile(file.name);
-      if (!savePath) return;
-      await startDownload(file.id, savePath);
-      return;
+      try {
+        const savePath = await api.pickSaveFile(file.name);
+        if (savePath) {
+          await startDownload(file.id, savePath);
+          return;
+        }
+      } catch (e) {
+        console.warn('Native picker unavailable, falling back:', e);
+      }
     }
     await startDownload(file.id, file.name);
   };
@@ -121,9 +129,9 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 
     for (let i = 0; i < droppedFiles.length; i++) {
       const file = droppedFiles[i];
-      const filePath = (file as any).path || file.name;
-      await startUpload(filePath, currentFolderId);
+      await startUpload(file, currentFolderId);
     }
+    await refreshFiles();
   };
 
   const isTrash = navSection === 'trash';
@@ -134,7 +142,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`relative flex-1 overflow-y-auto p-3 sm:p-6 flex flex-col gap-4 sm:gap-6 select-none ${
+      className={`relative flex-1 overflow-y-auto p-3 sm:p-6 pb-28 sm:pb-8 flex flex-col gap-3.5 sm:gap-6 select-none ${
         isDragOver ? 'bg-tg-blue-500/5 ring-2 ring-inset ring-tg-blue-500/50' : ''
       }`}
     >
@@ -150,7 +158,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       )}
 
       {/* Breadcrumb Navigation & Section Title */}
-      <div className="flex items-center justify-between overflow-x-auto pb-0.5">
+      <div className="flex items-center justify-between overflow-x-auto pb-1 pt-0.5 shrink-0">
         <div className="flex items-center gap-1.5 text-sm">
           {navSection === 'files' ? (
             breadcrumbs.map((crumb, idx) => (
@@ -158,9 +166,9 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                 {idx > 0 && <ChevronRight className="w-4 h-4 text-tg-dark-muted/60 shrink-0" />}
                 <button
                   onClick={() => navigateToBreadcrumb(idx)}
-                  className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors truncate ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors truncate active:scale-95 ${
                     idx === breadcrumbs.length - 1
-                      ? 'text-white font-semibold bg-tg-dark-surface'
+                      ? 'text-white font-semibold bg-tg-dark-surface border border-tg-dark-border/60 shadow-sm'
                       : 'text-tg-dark-muted hover:text-white'
                   }`}
                 >
@@ -177,6 +185,30 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Mobile Category Filters Horizontal Strip */}
+      <div className="flex sm:hidden items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none shrink-0">
+        {[
+          { id: 'all', label: 'All' },
+          { id: 'documents', label: 'Docs' },
+          { id: 'images', label: 'Photos' },
+          { id: 'videos', label: 'Videos' },
+          { id: 'audio', label: 'Audio' },
+          { id: 'archives', label: 'Archives' },
+        ].map((c) => (
+          <button
+            key={c.id}
+            onClick={() => setCategoryFilter(c.id)}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-all shrink-0 active:scale-95 ${
+              categoryFilter === c.id
+                ? 'bg-tg-blue-500 text-white shadow-sm shadow-tg-blue-500/30'
+                : 'bg-tg-dark-surface text-tg-dark-muted border border-tg-dark-border hover:text-white'
+            }`}
+          >
+            {c.label}
+          </button>
+        ))}
       </div>
 
       {/* Folders Section (Only shown in My Files) */}
