@@ -8,9 +8,13 @@ import {
   Trash2,
   X,
   ChevronDown,
+  Archive,
+  Loader2,
 } from 'lucide-react';
 import { useFiles } from '../context/FilesContext';
 import { useTransfers } from '../context/TransfersContext';
+import { api } from '../lib/api';
+import JSZip from 'jszip';
 
 export const BatchActionBar: React.FC = () => {
   const {
@@ -27,6 +31,7 @@ export const BatchActionBar: React.FC = () => {
 
   const { startDownload } = useTransfers();
   const [isMovePopoverOpen, setIsMovePopoverOpen] = useState(false);
+  const [zipping, setZipping] = useState(false);
 
   if (selectedIds.size === 0) return null;
 
@@ -45,6 +50,34 @@ export const BatchActionBar: React.FC = () => {
       await startDownload(f.id, f.name);
     }
     clearSelection();
+  };
+
+  const handleDownloadZip = async () => {
+    if (selectedFiles.length === 0) return;
+    setZipping(true);
+    try {
+      const zip = new JSZip();
+      for (const f of selectedFiles) {
+        const bytes = await api.getFilePreviewBytes(f.id);
+        if (bytes && bytes.length > 0) {
+          zip.file(f.name, bytes);
+        }
+      }
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `TGCloud_Archive_${new Date().toISOString().slice(0, 10)}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      clearSelection();
+    } catch (e) {
+      console.error('Failed to create ZIP:', e);
+    } finally {
+      setZipping(false);
+    }
   };
 
   return (
@@ -86,10 +119,22 @@ export const BatchActionBar: React.FC = () => {
             <button
               onClick={handleDownloadSelected}
               className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-tg-dark-bg/80 border border-tg-dark-border hover:bg-tg-dark-surfaceHover hover:border-tg-blue-500/40 text-xs font-semibold text-tg-blue-400 transition-all active:scale-95 flex items-center gap-1.5"
-              title="Download Selected"
+              title="Download Selected Files"
             >
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Download</span>
+            </button>
+          )}
+
+          {hasFiles && selectedFiles.length > 1 && (
+            <button
+              onClick={handleDownloadZip}
+              disabled={zipping}
+              className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 text-xs font-semibold text-purple-300 transition-all active:scale-95 flex items-center gap-1.5 disabled:opacity-50"
+              title="Bundle and Download Selected Files as a single ZIP archive"
+            >
+              {zipping ? <Loader2 className="w-4 h-4 animate-spin text-purple-400" /> : <Archive className="w-4 h-4 text-purple-400" />}
+              <span className="hidden sm:inline">{zipping ? 'Zipping...' : 'Download ZIP'}</span>
             </button>
           )}
 

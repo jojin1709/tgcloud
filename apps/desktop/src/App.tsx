@@ -21,7 +21,16 @@ import { checkAppUpdates, UpdateInfo } from './lib/updater';
 
 const MainLayout: React.FC = () => {
   const { authState, loading } = useAuth();
-  const { renameFile, renameFolder, refreshFiles } = useFiles();
+  const {
+    renameFile,
+    renameFolder,
+    refreshFiles,
+    selectedIds,
+    selectAll,
+    clearSelection,
+    bulkDelete,
+    files,
+  } = useFiles();
 
   const [previewFile, setPreviewFile] = useState<TGFile | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -64,6 +73,94 @@ const MainLayout: React.FC = () => {
       })
       .catch(console.error);
   }, []);
+
+  React.useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      const isInput =
+        activeEl?.tagName === 'INPUT' ||
+        activeEl?.tagName === 'TEXTAREA' ||
+        (activeEl as HTMLElement)?.isContentEditable;
+
+      // Escape: Dismiss active preview/modals or selection
+      if (e.key === 'Escape') {
+        if (previewFile) {
+          setPreviewFile(null);
+          return;
+        }
+        if (isSettingsOpen) {
+          setIsSettingsOpen(false);
+          return;
+        }
+        if (isNewFolderOpen) {
+          setIsNewFolderOpen(false);
+          return;
+        }
+        if (renameState.isOpen) {
+          setRenameState((prev) => ({ ...prev, isOpen: false }));
+          return;
+        }
+        if (selectedIds.size > 0) {
+          clearSelection();
+          return;
+        }
+      }
+
+      if (isInput) return;
+
+      // Ctrl + A or Meta + A: Select All
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        selectAll();
+        return;
+      }
+
+      // Delete / Backspace: Bulk delete
+      if (e.key === 'Delete') {
+        if (selectedIds.size > 0) {
+          e.preventDefault();
+          bulkDelete();
+          return;
+        }
+      }
+
+      // Space: Quick Preview single selected file
+      if (e.key === ' ' || e.code === 'Space') {
+        if (selectedIds.size === 1) {
+          const selectedId = Array.from(selectedIds)[0];
+          const fileToPreview = files.find((f) => f.id === selectedId);
+          if (fileToPreview) {
+            e.preventDefault();
+            setPreviewFile(fileToPreview);
+          }
+        }
+      }
+
+      // Ctrl + F: Focus search input
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        const searchInput = document.querySelector(
+          'input[type="text"][placeholder*="Search"]'
+        ) as HTMLInputElement;
+        if (searchInput) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [
+    previewFile,
+    isSettingsOpen,
+    isNewFolderOpen,
+    renameState.isOpen,
+    selectedIds,
+    selectAll,
+    clearSelection,
+    bulkDelete,
+    files,
+  ]);
 
   React.useEffect(() => {
     let t: NodeJS.Timeout;

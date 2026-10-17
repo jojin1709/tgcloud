@@ -30,6 +30,7 @@ interface FileCardProps {
   onRestoreFromTrash?: (id: string) => void;
   onDeletePermanent?: (id: string) => void;
   isTrashView?: boolean;
+  onContextMenu?: (e: React.MouseEvent, file: TGFile) => void;
 }
 
 export const FileCard: React.FC<FileCardProps> = ({
@@ -42,6 +43,7 @@ export const FileCard: React.FC<FileCardProps> = ({
   onRestoreFromTrash,
   onDeletePermanent,
   isTrashView,
+  onContextMenu,
 }) => {
   const { selectedIds, toggleSelect } = useFiles();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -72,8 +74,17 @@ export const FileCard: React.FC<FileCardProps> = ({
 
   return (
     <div
+      data-item-id={file.id}
+      data-item-type="file"
       draggable={!isTrashView}
       onDragStart={handleDragStart}
+      onContextMenu={(e) => {
+        if (onContextMenu) {
+          e.preventDefault();
+          e.stopPropagation();
+          onContextMenu(e, file);
+        }
+      }}
       onClick={(e) => {
         if (e.ctrlKey || e.metaKey || e.shiftKey || selectedIds.size > 0) {
           e.stopPropagation();

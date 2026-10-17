@@ -31,6 +31,7 @@ interface FilesContextType {
   navigateToFolder: (folderId: string | null, folderName?: string) => void;
   navigateToBreadcrumb: (index: number) => void;
   selectedIds: Set<string>;
+  setSelectedIds: React.Dispatch<React.SetStateAction<Set<string>>>;
   toggleSelect: (id: string) => void;
   selectAll: () => void;
   clearSelection: () => void;
@@ -280,6 +281,7 @@ export const FilesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         sortBy,
         sortOrder,
         selectedIds,
+        setSelectedIds,
         toggleSelect,
         selectAll,
         clearSelection,

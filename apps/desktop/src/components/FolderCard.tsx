@@ -9,6 +9,7 @@ interface FolderCardProps {
   onOpen: (id: string, name: string) => void;
   onRename: (id: string, currentName: string) => void;
   onDelete: (id: string) => void;
+  onContextMenu?: (e: React.MouseEvent, folder: TGFolder) => void;
 }
 
 export const FolderCard: React.FC<FolderCardProps> = ({
@@ -16,6 +17,7 @@ export const FolderCard: React.FC<FolderCardProps> = ({
   onOpen,
   onRename,
   onDelete,
+  onContextMenu,
 }) => {
   const { selectedIds, toggleSelect, moveFile } = useFiles();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -54,9 +56,18 @@ export const FolderCard: React.FC<FolderCardProps> = ({
 
   return (
     <div
+      data-item-id={folder.id}
+      data-item-type="folder"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      onContextMenu={(e) => {
+        if (onContextMenu) {
+          e.preventDefault();
+          e.stopPropagation();
+          onContextMenu(e, folder);
+        }
+      }}
       onClick={(e) => {
         if (e.ctrlKey || e.metaKey || e.shiftKey || selectedIds.size > 0) {
           e.stopPropagation();

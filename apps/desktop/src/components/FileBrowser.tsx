@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ChevronRight,
   Home,
@@ -11,10 +11,11 @@ import {
 import { useFiles } from '../context/FilesContext';
 import { useTransfers } from '../context/TransfersContext';
 import { api, isRunningInTauri } from '../lib/api';
-import { TGFile } from '@tgcloud/types';
+import { TGFile, TGFolder } from '@tgcloud/types';
 import { FolderCard } from './FolderCard';
 import { FileCard } from './FileCard';
 import { FileRow } from './FileRow';
+import { ContextMenu } from './ContextMenu';
 
 interface FileBrowserProps {
   onPreviewFile: (file: TGFile) => void;
@@ -46,10 +47,135 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     categoryFilter,
     setCategoryFilter,
     refreshFiles,
+    selectedIds,
+    setSelectedIds,
+    clearSelection,
+    selectAll,
   } = useFiles();
 
   const { startDownload, startUpload } = useTransfers();
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // Context Menu State
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean;
+    x: number;
+    y: number;
+    file?: TGFile | null;
+    folder?: TGFolder | null;
+  }>({
+    isOpen: false,
+    x: 0,
+    y: 0,
+    file: null,
+    folder: null,
+  });
+
+  // Marquee Selection State
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [marqueeBox, setMarqueeBox] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const marqueeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const isMarqueeDragging = useRef(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('button') ||
+      target.closest('input') ||
+      target.closest('a') ||
+      target.closest('[data-item-id]') ||
+      target.closest('.no-marquee')
+    ) {
+      return;
+    }
+
+    marqueeStartRef.current = { x: e.clientX, y: e.clientY };
+    isMarqueeDragging.current = false;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!marqueeStartRef.current) return;
+      const startX = marqueeStartRef.current.x;
+      const startY = marqueeStartRef.current.y;
+      const currentX = moveEvent.clientX;
+      const currentY = moveEvent.clientY;
+
+      const diffX = Math.abs(currentX - startX);
+      const diffY = Math.abs(currentY - startY);
+
+      if (diffX > 4 || diffY > 4) {
+        isMarqueeDragging.current = true;
+        const left = Math.min(startX, currentX);
+        const top = Math.min(startY, currentY);
+        const width = diffX;
+        const height = diffY;
+
+        setMarqueeBox({ left, top, width, height });
+
+        if (containerRef.current) {
+          const itemEls = containerRef.current.querySelectorAll('[data-item-id]');
+          const marqueeRect = {
+            left,
+            top,
+            right: left + width,
+            bottom: top + height,
+          };
+
+          const newSelected = new Set(
+            moveEvent.ctrlKey || moveEvent.shiftKey ? selectedIds : []
+          );
+          itemEls.forEach((el) => {
+            const r = el.getBoundingClientRect();
+            const intersects = !(
+              r.right < marqueeRect.left ||
+              r.left > marqueeRect.right ||
+              r.bottom < marqueeRect.top ||
+              r.top > marqueeRect.bottom
+            );
+            const id = el.getAttribute('data-item-id');
+            if (id && intersects) {
+              newSelected.add(id);
+            }
+          });
+          setSelectedIds(newSelected);
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      if (!isMarqueeDragging.current) {
+        clearSelection();
+      }
+      setMarqueeBox(null);
+      marqueeStartRef.current = null;
+      isMarqueeDragging.current = false;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleBackgroundContextMenu = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-item-id]') || target.closest('button')) {
+      return;
+    }
+    e.preventDefault();
+    setContextMenu({
+      isOpen: true,
+      x: e.clientX,
+      y: e.clientY,
+      file: null,
+      folder: null,
+    });
+  };
 
   const handleUploadClick = async () => {
     if (isRunningInTauri()) {
@@ -139,6 +265,9 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 
   return (
     <div
+      ref={containerRef}
+      onMouseDown={handleMouseDown}
+      onContextMenu={handleBackgroundContextMenu}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -146,6 +275,45 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
         isDragOver ? 'bg-tg-blue-500/5 ring-2 ring-inset ring-tg-blue-500/50' : ''
       }`}
     >
+      {/* Marquee Selection Rectangle Overlay */}
+      {marqueeBox && (
+        <div
+          className="fixed border border-tg-blue-400 bg-tg-blue-500/20 rounded pointer-events-none z-40 backdrop-blur-[0.5px]"
+          style={{
+            left: `${marqueeBox.left}px`,
+            top: `${marqueeBox.top}px`,
+            width: `${marqueeBox.width}px`,
+            height: `${marqueeBox.height}px`,
+          }}
+        />
+      )}
+
+      {/* Custom Context Menu */}
+      {contextMenu.isOpen && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          file={contextMenu.file}
+          folder={contextMenu.folder}
+          onClose={() => setContextMenu({ isOpen: false, x: 0, y: 0, file: null, folder: null })}
+          onPreview={contextMenu.file ? () => onPreviewFile(contextMenu.file!) : undefined}
+          onDownload={contextMenu.file ? () => handleDownload(contextMenu.file!) : undefined}
+          onStar={contextMenu.file ? () => toggleStar(contextMenu.file!.id) : undefined}
+          onRename={() => {
+            if (contextMenu.file) onRenameFile(contextMenu.file);
+            else if (contextMenu.folder) onRenameFolder(contextMenu.folder.id, contextMenu.folder.name);
+          }}
+          onDelete={() => {
+            if (contextMenu.file) moveToTrash(contextMenu.file.id);
+            else if (contextMenu.folder) deleteFolder(contextMenu.folder.id);
+          }}
+          onUpload={handleUploadClick}
+          onNewFolder={onNewFolder}
+          onSelectAll={selectAll}
+          onRefresh={refreshFiles}
+        />
+      )}
+
       {/* Drag & Drop Visual Overlay */}
       {isDragOver && (
         <div className="absolute inset-0 z-50 bg-tg-dark-bg/80 backdrop-blur-sm flex flex-col items-center justify-center border-2 border-dashed border-tg-blue-500 rounded-2xl m-4 pointer-events-none">
@@ -226,6 +394,15 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                 onOpen={(id, name) => navigateToFolder(id, name)}
                 onRename={(id, name) => onRenameFolder(id, name)}
                 onDelete={(id) => deleteFolder(id)}
+                onContextMenu={(e, f) =>
+                  setContextMenu({
+                    isOpen: true,
+                    x: e.clientX,
+                    y: e.clientY,
+                    file: null,
+                    folder: f,
+                  })
+                }
               />
             ))}
           </div>
@@ -254,6 +431,15 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                     onRestoreFromTrash={restoreFromTrash}
                     onDeletePermanent={deletePermanent}
                     isTrashView={isTrash}
+                    onContextMenu={(e, f) =>
+                      setContextMenu({
+                        isOpen: true,
+                        x: e.clientX,
+                        y: e.clientY,
+                        file: f,
+                        folder: null,
+                      })
+                    }
                   />
                 ))}
               </div>
@@ -282,6 +468,15 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                         onRestoreFromTrash={restoreFromTrash}
                         onDeletePermanent={deletePermanent}
                         isTrashView={isTrash}
+                        onContextMenu={(e, f) =>
+                          setContextMenu({
+                            isOpen: true,
+                            x: e.clientX,
+                            y: e.clientY,
+                            file: f,
+                            folder: null,
+                          })
+                        }
                       />
                     ))}
                   </tbody>
