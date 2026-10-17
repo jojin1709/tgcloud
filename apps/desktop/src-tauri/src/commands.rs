@@ -236,7 +236,12 @@ pub async fn upload_file_bytes(
     data: Vec<u8>,
     parent_folder_id: Option<String>,
 ) -> Result<String, AppError> {
-    let temp_dir = std::env::temp_dir().join("tgcloud_uploads");
+    use tauri::Manager;
+    let base_cache = app_handle
+        .path()
+        .app_cache_dir()
+        .unwrap_or_else(|_| std::env::temp_dir());
+    let temp_dir = base_cache.join("tgcloud_uploads");
     let _ = std::fs::create_dir_all(&temp_dir);
     let temp_path = temp_dir.join(&file_name);
     std::fs::write(&temp_path, data)?;

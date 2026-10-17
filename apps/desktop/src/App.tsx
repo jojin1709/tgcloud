@@ -12,9 +12,11 @@ import { NewFolderDialog } from './components/NewFolderDialog';
 import { RenameDialog } from './components/RenameDialog';
 import { LoginModal } from './components/LoginModal';
 import { MobileActionSheet } from './components/MobileActionSheet';
+import { UpdateNotificationBanner } from './components/UpdateNotificationBanner';
 import { Plus } from 'lucide-react';
 import { TGFile } from '@tgcloud/types';
 import { api } from './lib/api';
+import { checkAppUpdates, UpdateInfo } from './lib/updater';
 
 const MainLayout: React.FC = () => {
   const { authState, loading } = useAuth();
@@ -43,6 +45,7 @@ const MainLayout: React.FC = () => {
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showSkip, setShowSkip] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 
   React.useEffect(() => {
     api.getSettings().then((s) => {
@@ -50,6 +53,15 @@ const MainLayout: React.FC = () => {
         applyAppTheme(s.theme as any);
       }
     }).catch(console.error);
+
+    // Non-blocking auto update check
+    checkAppUpdates()
+      .then((info) => {
+        if (info.updateAvailable) {
+          setUpdateInfo(info);
+        }
+      })
+      .catch(console.error);
   }, []);
 
   React.useEffect(() => {
@@ -137,6 +149,7 @@ const MainLayout: React.FC = () => {
       />
 
       {/* Modals & Dialogs */}
+      <UpdateNotificationBanner updateInfo={updateInfo} onDismiss={() => setUpdateInfo(null)} />
       <FilePreviewModal file={previewFile} onClose={() => setPreviewFile(null)} />
       <TransfersModal />
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />

@@ -49,12 +49,13 @@ export const MobileActionSheet: React.FC<MobileActionSheetProps> = ({
 
         {/* Actions List */}
         <div className="space-y-2.5 mb-4">
-          <button
+          <label
+            htmlFor="global-file-input"
             onClick={() => {
               onClose();
               onUploadFiles();
             }}
-            className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-tg-dark-bg/60 border border-tg-dark-border/80 hover:bg-tg-dark-surfaceHover text-left transition-all active:scale-[0.98]"
+            className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-tg-dark-bg/60 border border-tg-dark-border/80 hover:bg-tg-dark-surfaceHover text-left transition-all active:scale-[0.98] cursor-pointer"
           >
             <div className="w-11 h-11 rounded-xl bg-tg-blue-500/20 border border-tg-blue-500/40 flex items-center justify-center shrink-0">
               <UploadCloud className="w-5 h-5 text-tg-blue-400" />
@@ -63,14 +64,15 @@ export const MobileActionSheet: React.FC<MobileActionSheetProps> = ({
               <div className="font-semibold text-sm text-white">Upload Files</div>
               <div className="text-xs text-tg-dark-muted truncate">Documents, archives, code, any files</div>
             </div>
-          </button>
+          </label>
 
-          <button
+          <label
+            htmlFor="global-media-input"
             onClick={() => {
               onClose();
               onUploadMedia();
             }}
-            className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-tg-dark-bg/60 border border-tg-dark-border/80 hover:bg-tg-dark-surfaceHover text-left transition-all active:scale-[0.98]"
+            className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-tg-dark-bg/60 border border-tg-dark-border/80 hover:bg-tg-dark-surfaceHover text-left transition-all active:scale-[0.98] cursor-pointer"
           >
             <div className="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0">
               <Image className="w-5 h-5 text-emerald-400" />
@@ -79,7 +81,7 @@ export const MobileActionSheet: React.FC<MobileActionSheetProps> = ({
               <div className="font-semibold text-sm text-white">Upload Photos & Videos</div>
               <div className="text-xs text-tg-dark-muted truncate">Pick pictures or recordings from gallery</div>
             </div>
-          </button>
+          </label>
 
           <button
             onClick={() => {

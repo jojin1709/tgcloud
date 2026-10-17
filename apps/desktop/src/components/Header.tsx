@@ -106,21 +106,23 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="h-16 border-b border-tg-dark-border px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 bg-tg-dark-bg/90 backdrop-blur-md shrink-0 relative z-30">
       {/* Hidden file input for general uploading */}
       <input
+        id="global-file-input"
         type="file"
         ref={fileInputRef}
         onChange={handleFileInputChange}
         multiple
-        className="hidden"
+        className="fixed -top-96 -left-96 opacity-0 pointer-events-none w-0 h-0"
       />
 
       {/* Hidden file input for photos/media */}
       <input
+        id="global-media-input"
         type="file"
         ref={mediaInputRef}
         onChange={handleFileInputChange}
         accept="image/*,video/*"
         multiple
-        className="hidden"
+        className="fixed -top-96 -left-96 opacity-0 pointer-events-none w-0 h-0"
       />
 
       {/* MOBILE FULL-WIDTH SEARCH VIEW */}
