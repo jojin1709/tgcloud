@@ -601,6 +601,47 @@ export const api = {
     return null;
   },
 
+  async getSyncFolder(): Promise<string> {
+    if (isRunningInTauri()) {
+      return await invoke<string>('get_sync_folder');
+    }
+    return 'C:\\Users\\User\\TGCloud';
+  },
+
+  async setSyncFolder(path: string): Promise<void> {
+    if (isRunningInTauri()) {
+      await invoke<void>('set_sync_folder', { path });
+    }
+  },
+
+  async startFolderWatcher(): Promise<string> {
+    if (isRunningInTauri()) {
+      return await invoke<string>('start_folder_watcher');
+    }
+    return 'C:\\Users\\User\\TGCloud';
+  },
+
+  async encryptAndUpload(filePath: string, passphrase: string, parentFolderId?: string): Promise<string> {
+    if (isRunningInTauri()) {
+      return await invoke<string>('encrypt_and_upload', {
+        filePath,
+        passphrase,
+        parentFolderId: parentFolderId || null,
+      });
+    }
+    return 'mock-enc-transfer-id';
+  },
+
+  async decryptFile(encryptedFilePath: string, destinationPath: string, passphrase: string): Promise<void> {
+    if (isRunningInTauri()) {
+      await invoke<void>('decrypt_file', {
+        encryptedFilePath,
+        destinationPath,
+        passphrase,
+      });
+    }
+  },
+
 
   // Event listener
   onTransferUpdate(callback: (transfer: TGTransfer) => void): () => void {

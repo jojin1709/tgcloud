@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { ActiveNavSection, useFiles } from '../context/FilesContext';
 import { useAuth } from '../context/AuthContext';
-import { formatBytes } from '../lib/utils';
+import { StorageBreakdownBar } from './StorageBreakdownBar';
 
 interface SidebarProps {
   onOpenSettings: () => void;
@@ -35,8 +35,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'starred', label: 'Starred', icon: <Star className="w-4 h-4" />, count: stats?.starredFiles },
     { id: 'trash', label: 'Trash', icon: <Trash2 className="w-4 h-4" />, count: stats?.trashFiles },
   ];
-
-  const totalBytes = stats?.totalBytesUsed || 0;
 
   return (
     <aside
@@ -122,15 +120,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
             <span className="text-[11px] font-medium text-tg-blue-400">Unlimited</span>
           </div>
-          <div className="w-full bg-tg-dark-border h-2 rounded-full overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-tg-blue-500 to-tg-blue-400 h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.max(5, (totalBytes / (1024 * 1024 * 1024 * 10)) * 100))}%` }}
-            />
-          </div>
-          <div className="flex items-center justify-between mt-2 text-[11px] text-tg-dark-muted">
-            <span className="text-white font-medium">{formatBytes(totalBytes)}</span>
-            <span>{stats?.totalFiles || 0} Files</span>
+          <div className="pt-2">
+            <StorageBreakdownBar compact={true} />
           </div>
         </div>
       </div>

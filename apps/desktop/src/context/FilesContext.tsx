@@ -30,6 +30,13 @@ interface FilesContextType {
   setSortOrder: (order: 'asc' | 'desc') => void;
   navigateToFolder: (folderId: string | null, folderName?: string) => void;
   navigateToBreadcrumb: (index: number) => void;
+  selectedIds: Set<string>;
+  toggleSelect: (id: string) => void;
+  selectAll: () => void;
+  clearSelection: () => void;
+  bulkDelete: () => Promise<void>;
+  bulkStar: (star: boolean) => Promise<void>;
+  bulkMove: (targetFolderId: string | null) => Promise<void>;
   createFolder: (name: string) => Promise<void>;
   renameFolder: (id: string, newName: string) => Promise<void>;
   deleteFolder: (id: string) => Promise<void>;
@@ -51,6 +58,7 @@ export const FilesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   ]);
   const [folders, setFolders] = useState<TGFolder[]>([]);
   const [files, setFiles] = useState<TGFile[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [stats, setStats] = useState<StorageStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [navSection, setNavSection] = useState<ActiveNavSection>('files');
@@ -198,6 +206,64 @@ export const FilesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     await refreshFiles();
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    const all = new Set<string>();
+    folders.forEach((f) => all.add(f.id));
+    files.forEach((f) => all.add(f.id));
+    setSelectedIds(all);
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  const bulkDelete = async () => {
+    for (const id of selectedIds) {
+      if (files.some((f) => f.id === id)) {
+        await api.moveFileToTrash(id);
+      } else if (folders.some((f) => f.id === id)) {
+        await api.deleteFolder(id);
+      }
+    }
+    clearSelection();
+    await refreshFiles();
+  };
+
+  const bulkStar = async (star: boolean) => {
+    for (const id of selectedIds) {
+      const f = files.find((file) => file.id === id);
+      if (f && f.isStarred !== star) {
+        await api.toggleStarFile(id);
+      }
+    }
+    clearSelection();
+    await refreshFiles();
+  };
+
+  const bulkMove = async (targetFolderId: string | null) => {
+    for (const id of selectedIds) {
+      if (files.some((f) => f.id === id)) {
+        await api.moveFile(id, targetFolderId);
+      } else if (folders.some((f) => f.id === id)) {
+        await api.moveFolder(id, targetFolderId);
+      }
+    }
+    clearSelection();
+    await refreshFiles();
+  };
+
   return (
     <FilesContext.Provider
       value={{
@@ -213,6 +279,13 @@ export const FilesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         categoryFilter,
         sortBy,
         sortOrder,
+        selectedIds,
+        toggleSelect,
+        selectAll,
+        clearSelection,
+        bulkDelete,
+        bulkStar,
+        bulkMove,
         setNavSection,
         setViewMode,
         setSearchQuery,

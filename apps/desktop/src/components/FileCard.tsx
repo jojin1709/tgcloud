@@ -13,9 +13,12 @@ import {
   Edit2,
   ExternalLink,
   Eye,
+  CheckSquare,
+  Square,
 } from 'lucide-react';
 import { TGFile } from '@tgcloud/types';
 import { formatBytes, formatDate, getFileCategory } from '../lib/utils';
+import { useFiles } from '../context/FilesContext';
 
 interface FileCardProps {
   file: TGFile;
@@ -40,8 +43,10 @@ export const FileCard: React.FC<FileCardProps> = ({
   onDeletePermanent,
   isTrashView,
 }) => {
+  const { selectedIds, toggleSelect } = useFiles();
   const [menuOpen, setMenuOpen] = useState(false);
   const category = getFileCategory(file.mimeType, file.name);
+  const isSelected = selectedIds.has(file.id);
 
   const getIcon = () => {
     switch (category) {
@@ -60,19 +65,58 @@ export const FileCard: React.FC<FileCardProps> = ({
     }
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('application/json', JSON.stringify({ type: 'tg-file', id: file.id }));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
   return (
     <div
-      onDoubleClick={() => onPreview(file)}
-      onClick={() => onPreview(file)}
-      className="group relative p-3 sm:p-3.5 rounded-2xl bg-tg-dark-surface border border-tg-dark-border hover:border-tg-blue-500/40 hover:bg-tg-dark-surfaceHover/80 transition-all duration-200 card-hover flex flex-col justify-between cursor-pointer active:scale-[0.99]"
+      draggable={!isTrashView}
+      onDragStart={handleDragStart}
+      onClick={(e) => {
+        if (e.ctrlKey || e.metaKey || e.shiftKey || selectedIds.size > 0) {
+          e.stopPropagation();
+          toggleSelect(file.id);
+        } else {
+          onPreview(file);
+        }
+      }}
+      className={`group relative p-3 sm:p-3.5 rounded-2xl bg-tg-dark-surface border transition-all duration-200 card-hover flex flex-col justify-between cursor-pointer active:scale-[0.99] ${
+        isSelected
+          ? 'border-tg-blue-500 bg-tg-blue-500/10 shadow-lg shadow-tg-blue-500/15'
+          : 'border-tg-dark-border hover:border-tg-blue-500/40 hover:bg-tg-dark-surfaceHover/80'
+      }`}
     >
       <div>
         {/* Card Top: Category Icon & Actions */}
         <div className="flex items-start justify-between">
-          <div
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-tg-dark-bg/80 border border-tg-dark-border flex items-center justify-center group-hover:scale-105 transition-all shrink-0"
-          >
-            {getIcon()}
+          <div className="flex items-center gap-2">
+            {!isTrashView && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSelect(file.id);
+                }}
+                className={`p-1 rounded-lg transition-all ${
+                  isSelected
+                    ? 'opacity-100 text-tg-blue-400'
+                    : selectedIds.size > 0
+                    ? 'opacity-70 hover:opacity-100 text-tg-dark-muted'
+                    : 'opacity-0 group-hover:opacity-100 text-tg-dark-muted hover:text-white'
+                }`}
+                title={isSelected ? 'Deselect' : 'Select'}
+              >
+                {isSelected ? (
+                  <CheckSquare className="w-4 h-4 text-tg-blue-400" />
+                ) : (
+                  <Square className="w-4 h-4" />
+                )}
+              </button>
+            )}
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-tg-dark-bg/80 border border-tg-dark-border flex items-center justify-center group-hover:scale-105 transition-all shrink-0">
+              {getIcon()}
+            </div>
           </div>
 
           <div className="flex items-center gap-0.5 sm:gap-1">

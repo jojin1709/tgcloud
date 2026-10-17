@@ -50,6 +50,7 @@ release-assets/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
+scratch/
 android/.gradle
 android/app/build/
 android/local.properties

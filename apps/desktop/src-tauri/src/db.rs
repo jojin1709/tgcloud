@@ -101,6 +101,7 @@ impl Database {
             CREATE INDEX IF NOT EXISTS idx_files_starred ON files(is_starred);
             CREATE INDEX IF NOT EXISTS idx_files_trash ON files(is_trash);
             CREATE INDEX IF NOT EXISTS idx_files_name ON files(name);
+            CREATE INDEX IF NOT EXISTS idx_files_hash ON files(hash);
             CREATE INDEX IF NOT EXISTS idx_folders_parent ON folders(parent_id);
             CREATE INDEX IF NOT EXISTS idx_transfers_status ON transfers(status);
             "#
@@ -390,6 +391,26 @@ impl Database {
         Ok(exists)
     }
 
+    pub fn find_file_by_hash(&self, hash: &str) -> Result<Option<TGFile>, AppError> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare(
+            r#"
+            SELECT id, name, parent_folder_id, telegram_chat_id, telegram_message_id,
+                   telegram_file_id, mime_type, size, hash, created_at, modified_at,
+                   thumbnail_path, status, is_starred, is_trash
+            FROM files
+            WHERE hash = ?1 AND is_trash = 0 AND telegram_message_id > 0
+            LIMIT 1
+            "#
+        )?;
+        let mut rows = stmt.query_map(params![hash], |row| Self::row_to_file(row))?;
+        if let Some(res) = rows.next() {
+            Ok(Some(res?))
+        } else {
+            Ok(None)
+        }
+    }
+
     pub fn rename_file(&self, id: &str, new_name: &str) -> Result<(), AppError> {
         let trimmed = new_name.trim();
         if trimmed.is_empty() {
@@ -558,6 +579,43 @@ impl Database {
             transfers.push(t?);
         }
         Ok(transfers)
+    }
+
+    pub fn get_transfer(&self, id: &str) -> Result<Option<TGTransfer>, AppError> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare(
+            r#"
+            SELECT id, file_id, file_name, type, status, progress, bytes_total,
+                   bytes_transferred, speed_bytes_per_sec, eta_seconds, error,
+                   created_at, updated_at, local_path
+            FROM transfers
+            WHERE id = ?1
+            LIMIT 1
+            "#
+        )?;
+        let mut rows = stmt.query_map(params![id], |row| {
+            Ok(TGTransfer {
+                id: row.get(0)?,
+                file_id: row.get(1)?,
+                file_name: row.get(2)?,
+                r#type: row.get(3)?,
+                status: row.get(4)?,
+                progress: row.get(5)?,
+                bytes_total: row.get(6)?,
+                bytes_transferred: row.get(7)?,
+                speed_bytes_per_sec: row.get(8)?,
+                eta_seconds: row.get(9)?,
+                error: row.get(10)?,
+                created_at: row.get(11)?,
+                updated_at: row.get(12)?,
+                local_path: row.get(13)?,
+            })
+        })?;
+        if let Some(res) = rows.next() {
+            Ok(Some(res?))
+        } else {
+            Ok(None)
+        }
     }
 
     pub fn clear_completed_transfers(&self) -> Result<(), AppError> {

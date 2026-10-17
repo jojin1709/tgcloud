@@ -13,9 +13,12 @@ import {
   Edit2,
   Eye,
   ExternalLink,
+  CheckSquare,
+  Square,
 } from 'lucide-react';
 import { TGFile } from '@tgcloud/types';
 import { formatBytes, formatDate, getFileCategory } from '../lib/utils';
+import { useFiles } from '../context/FilesContext';
 
 interface FileRowProps {
   file: TGFile;
@@ -40,8 +43,10 @@ export const FileRow: React.FC<FileRowProps> = ({
   onDeletePermanent,
   isTrashView,
 }) => {
+  const { selectedIds, toggleSelect } = useFiles();
   const [menuOpen, setMenuOpen] = useState(false);
   const category = getFileCategory(file.mimeType, file.name);
+  const isSelected = selectedIds.has(file.id);
 
   const getIcon = () => {
     switch (category) {
@@ -60,12 +65,52 @@ export const FileRow: React.FC<FileRowProps> = ({
     }
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('application/json', JSON.stringify({ type: 'tg-file', id: file.id }));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
   return (
     <tr
+      draggable={!isTrashView}
+      onDragStart={handleDragStart}
       onDoubleClick={() => onPreview(file)}
-      className="group border-b border-tg-dark-border/50 hover:bg-tg-dark-surfaceHover/60 transition-colors text-sm cursor-pointer select-none"
+      onClick={(e) => {
+        if (e.ctrlKey || e.metaKey || e.shiftKey || selectedIds.size > 0) {
+          e.stopPropagation();
+          toggleSelect(file.id);
+        } else {
+          onPreview(file);
+        }
+      }}
+      className={`group border-b border-tg-dark-border/50 transition-colors text-sm cursor-pointer select-none ${
+        isSelected
+          ? 'bg-tg-blue-500/15 border-tg-blue-500/50'
+          : 'hover:bg-tg-dark-surfaceHover/60'
+      }`}
     >
       <td className="py-3 px-3 sm:px-4 flex items-center gap-2.5 sm:gap-3 min-w-0">
+        {!isTrashView && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleSelect(file.id);
+            }}
+            className={`p-0.5 rounded transition-all shrink-0 ${
+              isSelected
+                ? 'text-tg-blue-400 opacity-100'
+                : selectedIds.size > 0
+                ? 'text-tg-dark-muted opacity-70 hover:opacity-100'
+                : 'text-tg-dark-muted opacity-0 group-hover:opacity-100'
+            }`}
+          >
+            {isSelected ? (
+              <CheckSquare className="w-3.5 h-3.5 text-tg-blue-400" />
+            ) : (
+              <Square className="w-3.5 h-3.5" />
+            )}
+          </button>
+        )}
         <div className="w-7 h-7 rounded-lg bg-tg-dark-bg/80 border border-tg-dark-border flex items-center justify-center shrink-0">
           {getIcon()}
         </div>

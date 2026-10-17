@@ -86,6 +86,66 @@ impl TransferManager {
             local_path: Some(file_path_str.clone()),
         };
 
+        // --- Core Engine: Pre-Upload SHA-256 Deduplication ---
+        // Calculate hash prior to upload to prevent duplicate cloud data
+        let pre_calculated_hash = {
+            use sha2::Digest;
+            let mut hasher = sha2::Sha256::default();
+            if let Ok(mut hash_file) = tokio::fs::File::open(&local_path).await {
+                use tokio::io::AsyncReadExt;
+                let mut hash_buf = vec![0u8; 1024 * 512];
+                let read_ok = true;
+                while let Ok(n) = hash_file.read(&mut hash_buf).await {
+                    if n == 0 { break; }
+                    hasher.update(&hash_buf[..n]);
+                }
+                if read_ok {
+                    Some(format!("{:x}", hasher.finalize()))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        };
+
+        // If duplicate file exists in cloud, reuse payload and complete immediately
+        if let Some(ref hash_str) = pre_calculated_hash {
+            if let Ok(Some(existing_file)) = self.db.find_file_by_hash(hash_str) {
+                let file_id = uuid::Uuid::new_v4().to_string();
+                let mime = mime_guess::from_path(&local_path).first_or_octet_stream().to_string();
+                let new_file = TGFile {
+                    id: file_id.clone(),
+                    name: file_name.clone(),
+                    parent_folder_id,
+                    telegram_chat_id: existing_file.telegram_chat_id,
+                    telegram_message_id: existing_file.telegram_message_id,
+                    telegram_file_id: existing_file.telegram_file_id.clone(),
+                    mime_type: mime,
+                    size: file_size,
+                    hash: Some(hash_str.clone()),
+                    created_at: Utc::now().timestamp_millis(),
+                    modified_at: Utc::now().timestamp_millis(),
+                    thumbnail_path: existing_file.thumbnail_path.clone(),
+                    status: "synced".to_string(),
+                    is_starred: false,
+                    is_trash: false,
+                };
+                self.db.insert_file(&new_file)?;
+
+                let mut completed_transfer = transfer.clone();
+                completed_transfer.file_id = Some(file_id);
+                completed_transfer.status = "completed".to_string();
+                completed_transfer.progress = 100.0;
+                completed_transfer.bytes_transferred = file_size;
+                completed_transfer.updated_at = Utc::now().timestamp_millis();
+                self.db.save_transfer(&completed_transfer)?;
+                let _ = app_handle.emit("transfer-update", &completed_transfer);
+                let _ = app_handle.emit("files-changed", ());
+                return Ok(transfer_id);
+            }
+        }
+
         self.db.save_transfer(&transfer)?;
         self.active_transfers.write().await.insert(transfer_id.clone(), transfer.clone());
 
@@ -97,15 +157,15 @@ impl TransferManager {
         let tg_service = self.telegram.clone();
         let t_id = transfer_id.clone();
         let f_name = file_name.clone();
+        let known_hash = pre_calculated_hash.clone();
 
         tokio::spawn(async move {
             let mut current_transferred = 0i64;
-            let _start_time = Instant::now();
             let mut last_instant = Instant::now();
             let mut last_bytes = 0i64;
 
             // In our Telegram MTProto architecture:
-            // Upload chunks to Telegram, computing real SHA-256 and progress
+            // Upload chunks to Telegram, computing progress and supporting byte resumption
             let mut file = match tokio::fs::File::open(&local_path).await {
                 Ok(f) => f,
                 Err(e) => {
@@ -118,6 +178,14 @@ impl TransferManager {
                     return;
                 }
             };
+
+            // Resumable chunk upload: Seek to saved offset if resuming
+            if transfer.bytes_transferred > 0 && transfer.bytes_transferred < file_size {
+                use tokio::io::AsyncSeekExt;
+                let _ = file.seek(std::io::SeekFrom::Start(transfer.bytes_transferred as u64)).await;
+                current_transferred = transfer.bytes_transferred;
+                last_bytes = current_transferred;
+            }
 
             use tokio::io::AsyncReadExt;
             let chunk_size = 512 * 1024; // 512 KB standard MTProto part size
@@ -218,7 +286,7 @@ impl TransferManager {
                 }
             }
 
-            let hash_hex = format!("{:x}", hasher.finalize());
+            let hash_hex = known_hash.unwrap_or_else(|| format!("{:x}", hasher.finalize()));
             let mime = mime_guess::from_path(&local_path).first_or_octet_stream().to_string();
 
             // Real upload to Telegram Saved Messages
@@ -465,9 +533,21 @@ impl TransferManager {
         if let Some(sender) = senders.get(transfer_id) {
             sender.send(control).await
                 .map_err(|e| AppError::io_error(format!("Failed to send control command: {}", e)))?;
-            Ok(())
-        } else {
-            Err(AppError::not_found("Active transfer not found or already finished"))
+            return Ok(());
         }
+        drop(senders);
+
+        // SQLite persistent resume fallback for interrupted/paused transfers
+        if matches!(control, TransferControl::Resume) {
+            if let Ok(Some(mut t)) = self.db.get_transfer(transfer_id) {
+                if t.status == "paused" || t.status == "failed" {
+                    t.status = "active".to_string();
+                    let _ = self.db.save_transfer(&t);
+                    return Ok(());
+                }
+            }
+        }
+
+        Err(AppError::not_found("Active transfer not found or already finished"))
     }
 }

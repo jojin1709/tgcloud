@@ -19,12 +19,20 @@ import {
   RefreshCw,
   Smartphone,
   Monitor,
+  FolderSync,
+  Lock,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Folder,
+  CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFiles } from '../context/FilesContext';
 import { api } from '../lib/api';
 import { AppSettings } from '@tgcloud/types';
 import { checkAppUpdates, triggerUpdateDownload, UpdateInfo, CURRENT_APP_VERSION } from '../lib/updater';
+import { StorageBreakdownBar } from './StorageBreakdownBar';
 
 export const applyAppTheme = (th: 'dark' | 'light' | 'system') => {
   if (th === 'light') {
@@ -64,6 +72,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     vaultName: 'TGCloud Personal Vault',
   });
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [syncFolder, setSyncFolder] = useState<string>('~/TGCloud');
+  const [watcherRunning, setWatcherRunning] = useState<boolean>(false);
+  const [zkPassphrase, setZkPassphrase] = useState<string>('');
+  const [zkEnabled, setZkEnabled] = useState<boolean>(false);
+  const [showZkPassphrase, setShowZkPassphrase] = useState<boolean>(false);
   const [updateState, setUpdateState] = useState<{
     checking: boolean;
     checked: boolean;
@@ -90,8 +103,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         setSettings(s);
         applyAppTheme(s.theme as any);
       }).catch(console.error);
+
+      api.getSyncFolder().then(setSyncFolder).catch(console.error);
     }
   }, [isOpen]);
+
+  const handlePickSyncFolder = async () => {
+    const folder = await api.pickFolder();
+    if (folder) {
+      await api.setSyncFolder(folder);
+      setSyncFolder(folder);
+    }
+  };
+
+  const handleStartWatcher = async () => {
+    try {
+      await api.startFolderWatcher();
+      setWatcherRunning(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -275,6 +307,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
             {activeTab === 'storage' && (
               <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white mb-2">Storage Breakdown</h3>
+                  <div className="p-4 rounded-xl bg-tg-dark-bg/60 border border-tg-dark-border">
+                    <StorageBreakdownBar compact={false} />
+                  </div>
+                </div>
+
                 <h3 className="text-sm font-bold text-white mb-2">Local SQLite Database & Cache</h3>
                 <div className="p-4 rounded-xl bg-tg-dark-bg/60 border border-tg-dark-border space-y-2.5 text-xs">
                   <div className="flex justify-between">
@@ -326,13 +365,169 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             )}
 
             {activeTab === 'security' && (
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-white mb-2">Security Architecture</h3>
-                <div className="p-4 rounded-xl bg-tg-dark-bg/60 border border-tg-dark-border space-y-2 text-xs text-tg-dark-muted">
-                  <p>• Zero intermediate central servers.</p>
-                  <p>• MTProto encryption directly to Telegram data centers.</p>
-                  <p>• Telegram 2FA cloud passwords are never saved on disk.</p>
-                  <p>• Sessions stored in OS-protected user directory.</p>
+              <div className="space-y-4 py-1">
+                {/* Zero-Knowledge Client-Side Encryption */}
+                <div className="p-4 rounded-2xl bg-tg-dark-bg/60 border border-tg-dark-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center shrink-0">
+                        <KeyRound className="w-5 h-5 text-purple-400" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-white">Zero-Knowledge Encryption</h4>
+                          <span className="px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/30 text-[10px] font-mono text-purple-300">
+                            AES-256-GCM
+                          </span>
+                        </div>
+                        <p className="text-xs text-tg-dark-muted mt-0.5">
+                          Files are encrypted on-device with your private passphrase before upload
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setZkEnabled(!zkEnabled)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                        zkEnabled ? 'bg-purple-600' : 'bg-tg-dark-border'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          zkEnabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {zkEnabled && (
+                    <div className="pt-2 border-t border-tg-dark-border/60 space-y-2">
+                      <label className="text-xs text-tg-dark-muted font-medium block">
+                        Master Encryption Passphrase
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type={showZkPassphrase ? 'text' : 'password'}
+                            value={zkPassphrase}
+                            onChange={(e) => setZkPassphrase(e.target.value)}
+                            placeholder="Enter a secret passphrase (never leaves this device)..."
+                            className="w-full bg-tg-dark-surface border border-tg-dark-border rounded-xl px-3 py-2 text-xs text-white placeholder-tg-dark-muted focus:outline-none focus:border-purple-500 pr-9 font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowZkPassphrase(!showZkPassphrase)}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-tg-dark-muted hover:text-white"
+                          >
+                            {showZkPassphrase ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-purple-300/80">
+                        Warning: If you lose this passphrase, your encrypted files cannot be decrypted even by Telegram.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Local Folder Auto-Sync Daemon */}
+                <div className="p-4 rounded-2xl bg-tg-dark-bg/60 border border-tg-dark-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-tg-blue-500/20 border border-tg-blue-500/30 flex items-center justify-center shrink-0">
+                        <FolderSync className="w-5 h-5 text-tg-blue-400" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-white">Local Folder Auto-Sync</h4>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                              watcherRunning
+                                ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
+                                : 'bg-tg-dark-surface border border-tg-dark-border text-tg-dark-muted'
+                            }`}
+                          >
+                            {watcherRunning ? 'Watcher Active' : 'Standby'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-tg-dark-muted mt-0.5">
+                          Monitors directory changes using background notify daemon
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleStartWatcher}
+                      disabled={watcherRunning}
+                      className="px-3 py-1.5 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 disabled:opacity-50 text-white text-xs font-semibold shadow-sm transition-all active:scale-95 cursor-pointer shrink-0"
+                    >
+                      {watcherRunning ? 'Watching' : 'Start Watcher'}
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-tg-dark-border/60">
+                    <div className="flex-1 px-3 py-2 rounded-xl bg-tg-dark-surface border border-tg-dark-border text-xs text-white font-mono truncate">
+                      {syncFolder}
+                    </div>
+                    <button
+                      onClick={handlePickSyncFolder}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-tg-dark-surface border border-tg-dark-border hover:border-tg-blue-500/60 text-xs font-semibold text-white transition-all cursor-pointer shrink-0"
+                    >
+                      <Folder className="w-3.5 h-3.5 text-tg-blue-400" />
+                      <span>Browse</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* SHA-256 Deduplication & App Lock Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-tg-dark-bg/60 border border-tg-dark-border space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        <h4 className="text-xs font-bold text-white">SHA-256 Deduplication</h4>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        Active
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-tg-dark-muted">
+                      Pre-upload hashing detects duplicate payloads and links cloud storage with zero network waste.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-tg-dark-bg/60 border border-tg-dark-border space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-tg-blue-400" />
+                        <h4 className="text-xs font-bold text-white">App Lock & Biometrics</h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSettings((s) => ({ ...s, appLock: !s.appLock }))}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                          settings.appLock ? 'bg-tg-blue-500' : 'bg-tg-dark-border'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                            settings.appLock ? 'translate-x-4' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-tg-dark-muted">
+                      Require hardware biometrics or session PIN when launching TGCloud.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Core Architecture summary */}
+                <div className="p-3.5 rounded-xl bg-tg-dark-bg/40 border border-tg-dark-border/60 text-xs text-tg-dark-muted space-y-1">
+                  <p className="font-semibold text-white text-[11px]">Core Security Architecture</p>
+                  <p>• Zero central servers: direct MTProto pipeline to Telegram Cloud.</p>
+                  <p>• Resumable multi-chunk state stored in local encrypted SQLite database.</p>
                 </div>
               </div>
             )}

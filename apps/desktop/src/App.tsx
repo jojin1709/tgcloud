@@ -13,6 +13,7 @@ import { RenameDialog } from './components/RenameDialog';
 import { LoginModal } from './components/LoginModal';
 import { MobileActionSheet } from './components/MobileActionSheet';
 import { UpdateNotificationBanner } from './components/UpdateNotificationBanner';
+import { BatchActionBar } from './components/BatchActionBar';
 import { Plus } from 'lucide-react';
 import { TGFile } from '@tgcloud/types';
 import { api } from './lib/api';
@@ -149,6 +150,7 @@ const MainLayout: React.FC = () => {
       />
 
       {/* Modals & Dialogs */}
+      <BatchActionBar />
       <UpdateNotificationBanner updateInfo={updateInfo} onDismiss={() => setUpdateInfo(null)} />
       <FilePreviewModal file={previewFile} onClose={() => setPreviewFile(null)} />
       <TransfersModal />

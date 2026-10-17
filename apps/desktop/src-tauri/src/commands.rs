@@ -392,3 +392,81 @@ pub async fn pick_save_file_dialog(default_name: String) -> Result<Option<String
     }
 }
 
+// Zero-Knowledge Client-Side Encryption Commands
+#[tauri::command]
+pub async fn encrypt_and_upload(
+    app_handle: AppHandle,
+    state: State<'_, AppState>,
+    file_path: String,
+    passphrase: String,
+    parent_folder_id: Option<String>,
+) -> Result<String, AppError> {
+    use tauri::Manager;
+    use crate::crypto::CryptoService;
+    use std::path::PathBuf;
+
+    let src = PathBuf::from(&file_path);
+    if !src.exists() {
+        return Err(AppError::invalid_input("Source file does not exist"));
+    }
+
+    let file_name = src.file_name().and_then(|n| n.to_str()).unwrap_or("file");
+    let enc_file_name = format!("{}.tgenc", file_name);
+
+    let base_cache = app_handle
+        .path()
+        .app_cache_dir()
+        .unwrap_or_else(|_| std::env::temp_dir());
+    let temp_dir = base_cache.join("tgcloud_encrypted");
+    let _ = std::fs::create_dir_all(&temp_dir);
+    let dest = temp_dir.join(&enc_file_name);
+
+    CryptoService::encrypt_file(&src, &dest, &passphrase).await?;
+
+    state.transfers.start_upload(app_handle, dest.to_string_lossy().to_string(), parent_folder_id).await
+}
+
+#[tauri::command]
+pub async fn decrypt_file(
+    encrypted_file_path: String,
+    destination_path: String,
+    passphrase: String,
+) -> Result<(), AppError> {
+    use crate::crypto::CryptoService;
+    use std::path::PathBuf;
+
+    let src = PathBuf::from(&encrypted_file_path);
+    let dest = PathBuf::from(&destination_path);
+    CryptoService::decrypt_file(&src, &dest, &passphrase).await
+}
+
+// Local Sync Folder Commands
+#[tauri::command]
+pub fn get_sync_folder(state: State<'_, AppState>) -> Result<String, AppError> {
+    if let Ok(Some(custom_dir)) = state.db.get_setting("sync_folder") {
+        return Ok(custom_dir);
+    }
+    let default_dir = crate::sync_watcher::SyncWatcher::default_sync_dir();
+    let _ = std::fs::create_dir_all(&default_dir);
+    Ok(default_dir.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+pub fn set_sync_folder(state: State<'_, AppState>, path: String) -> Result<(), AppError> {
+    let p = std::path::PathBuf::from(&path);
+    let _ = std::fs::create_dir_all(&p);
+    state.db.set_setting("sync_folder", &path)
+}
+
+#[tauri::command]
+pub async fn start_folder_watcher(
+    app_handle: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<String, AppError> {
+    let sync_dir_str = get_sync_folder(state)?;
+    let mut watcher = crate::sync_watcher::SyncWatcher::new(std::path::PathBuf::from(&sync_dir_str));
+    watcher.start(app_handle)
+        .map_err(|e| AppError::internal(e))?;
+    Ok(sync_dir_str)
+}
+

@@ -46,6 +46,10 @@ impl AppError {
     pub fn db_error(msg: impl Into<String>) -> Self {
         Self::new("DB_ERROR", msg)
     }
+
+    pub fn internal(msg: impl Into<String>) -> Self {
+        Self::new("INTERNAL_ERROR", msg)
+    }
 }
 
 impl From<std::io::Error> for AppError {

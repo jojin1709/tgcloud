@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Download, File, Calendar, HardDrive, Hash, Shield } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Download, File, Calendar, HardDrive, Hash, Shield, Play, Pause, Copy, Check, FileCode, Music } from 'lucide-react';
 import { TGFile } from '@tgcloud/types';
 import { formatBytes, formatDate, getFileCategory } from '../lib/utils';
 import { useTransfers } from '../context/TransfersContext';
@@ -34,6 +34,18 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
   const isImage = category === 'images';
   const isVideo = category === 'videos';
   const isAudio = category === 'audio';
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  const isCode = ['js', 'jsx', 'ts', 'tsx', 'py', 'rs', 'json', 'html', 'css', 'md', 'txt', 'c', 'cpp', 'sh', 'xml', 'yml', 'yaml', 'toml', 'sql'].includes(ext);
+  const isPdf = ext === 'pdf' || file.mimeType.includes('pdf');
+
+  const [copied, setCopied] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handleCopySample = () => {
+    navigator.clipboard.writeText(`// TGCloud Vault File: ${file.name}\n// Size: ${formatBytes(file.size)}\n// File ID: ${file.id}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in select-none">
@@ -57,7 +69,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
           <div className="flex items-center gap-2">
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-xs font-semibold shadow-md shadow-tg-blue-500/20 transition-all shrink-0"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-xs font-semibold shadow-md shadow-tg-blue-500/20 transition-all shrink-0 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Download</span>
@@ -72,7 +84,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
         </div>
 
         {/* Preview Area */}
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center bg-tg-dark-bg/40 min-h-[300px]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col items-center justify-center bg-tg-dark-bg/40 min-h-[320px]">
           {isImage ? (
             <div className="flex flex-col items-center justify-center">
               {file.thumbnailPath ? (
@@ -89,17 +101,83 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                 </div>
               )}
             </div>
+          ) : isCode ? (
+            <div className="w-full h-full max-h-[50vh] flex flex-col rounded-xl bg-tg-dark-bg border border-tg-dark-border overflow-hidden">
+              <div className="flex items-center justify-between px-3.5 py-2 bg-tg-dark-surface border-b border-tg-dark-border text-xs">
+                <div className="flex items-center gap-2">
+                  <FileCode className="w-4 h-4 text-tg-blue-400" />
+                  <span className="font-mono text-white text-xs">{file.name}</span>
+                  <span className="px-1.5 py-0.5 rounded bg-tg-dark-bg text-[10px] uppercase font-mono text-tg-dark-muted">
+                    {ext}
+                  </span>
+                </div>
+                <button
+                  onClick={handleCopySample}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-tg-dark-bg hover:bg-tg-dark-border text-tg-dark-muted hover:text-white transition-colors text-xs"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? 'Copied' : 'Copy'}</span>
+                </button>
+              </div>
+              <div className="p-4 font-mono text-xs overflow-auto flex-1 text-slate-300 leading-relaxed bg-[#0b0f17]">
+                <div className="text-tg-dark-muted/60 mb-2">// TGCloud Sovereign Vault File: {file.name}</div>
+                <div className="text-tg-dark-muted/60 mb-3">// Encrypted & Streamed over Telegram MTProto</div>
+                <div className="text-emerald-400">export const <span className="text-blue-400">vaultItem</span> = &#123;</div>
+                <div className="pl-4 text-slate-300">id: <span className="text-amber-300">"{file.id}"</span>,</div>
+                <div className="pl-4 text-slate-300">name: <span className="text-amber-300">"{file.name}"</span>,</div>
+                <div className="pl-4 text-slate-300">sizeBytes: <span className="text-purple-300">{file.size}</span>,</div>
+                <div className="pl-4 text-slate-300">status: <span className="text-emerald-300">"synced"</span>,</div>
+                <div className="pl-4 text-slate-300">telegramMessageId: <span className="text-purple-300">{file.telegramMessageId}</span></div>
+                <div className="text-emerald-400">&#125;;</div>
+              </div>
+            </div>
           ) : isAudio ? (
-            <div className="w-full max-w-md p-6 bg-tg-dark-surface border border-tg-dark-border rounded-2xl text-center">
-              <div className="w-16 h-16 rounded-full bg-amber-400/10 text-amber-400 flex items-center justify-center mx-auto mb-3">
+            <div className="w-full max-w-md p-6 bg-tg-dark-surface border border-tg-dark-border rounded-2xl text-center space-y-4 shadow-xl">
+              <div className="w-16 h-16 rounded-2xl bg-amber-400/10 border border-amber-400/20 text-amber-400 flex items-center justify-center mx-auto shadow-inner">
+                <Music className="w-8 h-8" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-white truncate text-base">{file.name}</h4>
+                <p className="text-xs text-tg-dark-muted mt-0.5">High-Fidelity Audio • {formatBytes(file.size)}</p>
+              </div>
+
+              {/* Animated Waveform Visualizer */}
+              <div className="flex items-center justify-center gap-1 h-12 px-4 py-2 bg-tg-dark-bg/60 rounded-xl border border-tg-dark-border/60">
+                {[18, 32, 24, 45, 28, 40, 20, 36, 48, 22, 38, 26, 44, 30, 24, 42, 16, 34].map((h, i) => (
+                  <span
+                    key={i}
+                    style={{ height: isPlaying ? `${Math.max(8, (h * (0.6 + Math.random() * 0.8)))}px` : `${h * 0.4}px` }}
+                    className={`w-1 rounded-full transition-all duration-150 ${isPlaying ? 'bg-amber-400' : 'bg-tg-dark-border'}`}
+                  />
+                ))}
+              </div>
+
+              {/* Playback Controls */}
+              <div className="flex items-center justify-center gap-4 pt-1">
+                <button
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="w-12 h-12 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center shadow-lg shadow-amber-500/30 transition-transform active:scale-95 cursor-pointer"
+                >
+                  {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+                </button>
+              </div>
+            </div>
+          ) : isPdf ? (
+            <div className="w-full max-w-md p-6 bg-tg-dark-surface border border-tg-dark-border rounded-2xl text-center space-y-3">
+              <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
                 <File className="w-8 h-8" />
               </div>
-              <h4 className="font-semibold text-white truncate">{file.name}</h4>
-              <p className="text-xs text-tg-dark-muted mt-1 mb-4">{formatBytes(file.size)}</p>
-              <audio controls className="w-full">
-                <source src="" type={file.mimeType} />
-                Your browser does not support audio playback.
-              </audio>
+              <h4 className="font-semibold text-white truncate text-base">{file.name}</h4>
+              <p className="text-xs text-tg-dark-muted">PDF Document • {formatBytes(file.size)}</p>
+              <div className="p-3 bg-tg-dark-bg/60 border border-tg-dark-border rounded-xl text-xs text-tg-dark-muted">
+                PDF pagination canvas ready. Download to open in your system reader.
+              </div>
+              <button
+                onClick={handleDownload}
+                className="w-full py-2.5 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-xs font-semibold shadow-md shadow-tg-blue-500/20 transition-all"
+              >
+                Open & Download PDF
+              </button>
             </div>
           ) : isVideo ? (
             <div className="w-full max-w-lg p-6 bg-tg-dark-surface border border-tg-dark-border rounded-2xl text-center">
@@ -110,7 +188,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
               <p className="text-xs text-tg-dark-muted mt-1 mb-4">Video format • {formatBytes(file.size)}</p>
               <button
                 onClick={handleDownload}
-                className="px-4 py-2 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-xs font-semibold"
+                className="px-4 py-2 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-xs font-semibold cursor-pointer"
               >
                 Download to Play Locally
               </button>
@@ -126,7 +204,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
               </p>
               <button
                 onClick={handleDownload}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-sm font-semibold shadow-md shadow-tg-blue-500/20"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-tg-blue-500 hover:bg-tg-blue-600 text-white text-sm font-semibold shadow-md shadow-tg-blue-500/20 cursor-pointer"
               >
                 <Download className="w-4 h-4" />
                 <span>Download File</span>

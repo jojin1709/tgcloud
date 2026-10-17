@@ -5,6 +5,8 @@ pub mod session;
 pub mod telegram;
 pub mod transfer_manager;
 pub mod commands;
+pub mod crypto;
+pub mod sync_watcher;
 
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -68,6 +70,61 @@ pub fn run() {
             };
 
             app.manage(app_state);
+
+            // System Tray integration for desktop platforms
+            #[cfg(not(target_os = "android"))]
+            {
+                use tauri::menu::{Menu, MenuItem};
+                use tauri::tray::{TrayIconBuilder, MouseButton, MouseButtonState, TrayIconEvent};
+
+                if let (Ok(show_hide), Ok(quit)) = (
+                    MenuItem::with_id(app, "show_hide", "Show / Hide TGCloud", true, None::<&str>),
+                    MenuItem::with_id(app, "quit", "Quit TGCloud", true, None::<&str>),
+                ) {
+                    if let Ok(menu) = Menu::with_items(app, &[&show_hide, &quit]) {
+                        let _ = TrayIconBuilder::new()
+                            .menu(&menu)
+                            .show_menu_on_left_click(false)
+                            .on_menu_event(|app, event| {
+                                match event.id.as_ref() {
+                                    "show_hide" => {
+                                        if let Some(window) = app.get_webview_window("main") {
+                                            if window.is_visible().unwrap_or(false) {
+                                                let _ = window.hide();
+                                            } else {
+                                                let _ = window.show();
+                                                let _ = window.set_focus();
+                                            }
+                                        }
+                                    }
+                                    "quit" => {
+                                        app.exit(0);
+                                    }
+                                    _ => {}
+                                }
+                            })
+                            .on_tray_icon_event(|tray, event| {
+                                if let TrayIconEvent::Click {
+                                    button: MouseButton::Left,
+                                    button_state: MouseButtonState::Up,
+                                    ..
+                                } = event {
+                                    let app = tray.app_handle();
+                                    if let Some(window) = app.get_webview_window("main") {
+                                        if window.is_visible().unwrap_or(false) {
+                                            let _ = window.hide();
+                                        } else {
+                                            let _ = window.show();
+                                            let _ = window.set_focus();
+                                        }
+                                    }
+                                }
+                            })
+                            .build(app);
+                    }
+                }
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -105,7 +162,12 @@ pub fn run() {
             open_file_in_os,
             pick_files_dialog,
             pick_folder_dialog,
-            pick_save_file_dialog
+            pick_save_file_dialog,
+            encrypt_and_upload,
+            decrypt_file,
+            get_sync_folder,
+            set_sync_folder,
+            start_folder_watcher
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
