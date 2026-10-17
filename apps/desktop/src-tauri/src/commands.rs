@@ -370,12 +370,12 @@ pub async fn pick_folder_dialog() -> Result<Option<String>, AppError> {
 }
 
 #[tauri::command]
-pub async fn pick_save_file_dialog(default_name: String) -> Result<Option<String>, AppError> {
+pub async fn pick_save_file_dialog(_default_name: String) -> Result<Option<String>, AppError> {
     #[cfg(not(target_os = "android"))]
     {
         let mut dialog = rfd::AsyncFileDialog::new()
             .set_title("Save Downloaded File As")
-            .set_file_name(&default_name);
+            .set_file_name(&_default_name);
 
         if let Some(user_dirs) = directories::UserDirs::new() {
             if let Some(download_dir) = user_dirs.download_dir() {
